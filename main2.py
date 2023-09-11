@@ -79,7 +79,7 @@ while True:
 
         random_decision = random.choice(possible_directions)
 
-        if random_decision == "forward":
+        if random_decision == "front":
             robot.drive(DRIVE_SPEED, 0)
         elif random_decision == "left":
             robot.turn(-90)
