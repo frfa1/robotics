@@ -7,6 +7,8 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+import random
+
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
 # Click "Open user guide" on the EV3 extension tab for more information.
@@ -50,6 +52,25 @@ while True:
     middle_reflection = middle_sensor.reflection()
 
     # Determine the state based on sensor readings
+    if middle_reflection < threshold:
+        robot.drive(DRIVE_SPEED, 0)
+        if left_reflection > threshold:
+            robot.turn(-5)
+        elif right_reflection > threshold:
+            robot.turn(5)
+    else:
+        robot.stop()
+
+"""
+        if middle_reflection > threshold:
+            robot.stop()
+        if left_reflection > threshold:
+
+        wait(CORRECTION_DURATION)
+        robot.stop()
+
+
+
     if left_reflection < threshold and middle_reflection < threshold and right_reflection < threshold:
         state = "all_black"
     elif middle_reflection < threshold and left_reflection < threshold:
@@ -89,7 +110,8 @@ while True:
         if "right" in state:
             possible_directions.append("right")
 
-        random_decision = random.choice(possible_directions)
+        #random_decision = random.choice(possible_directions)
+        random_decision = ""
 
         if random_decision == "forward":
             robot.drive(DRIVE_SPEED, 0)
@@ -98,5 +120,5 @@ while True:
         elif random_decision == "right":
             robot.turn(90)
 
-    wait(100)
+    wait(100)"""
 
