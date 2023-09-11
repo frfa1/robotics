@@ -3,6 +3,7 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port
 from pybricks.robotics import DriveBase
+from pybricks.tools import wait
 import random
 
 # Create your objects here.
@@ -78,7 +79,7 @@ while True:
 
         random_decision = random.choice(possible_directions)
 
-        if random_decision == "forward":
+        if random_decision == "front":
             robot.drive(DRIVE_SPEED, 0)
         elif random_decision == "left":
             robot.turn(-90)
