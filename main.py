@@ -36,6 +36,7 @@ robot = DriveBase(left_motor, right_motor, wheel_diameter=442, axle_track=1600)
 BLACK = 5
 GRAY = 80
 threshold = (BLACK + GRAY) / 2 # 42.5
+soft_threshold = threshold / 2 # 21.25
 
 DRIVE_SPEED = 1000
 
@@ -45,7 +46,31 @@ PROPORTIONAL_GAIN = 1.2
 CORRECTION_DURATION = 500  # Time in milliseconds
 CORRECTION_SPEED = 300     # Speed for correction
 
-while True:
+MAP = [
+    [2, 1, 1, 2],
+    [1, 0, 0, 1],
+    [1, 0, 0, 1],
+    [2, 1, 1, 2]
+]
+# 0: Middle
+# 1: Edge
+# 2: Corner
+# GOAL: Diamond to [3, 3]
+GOAL = [3, 3]
+
+class State:
+    def __init__(self, a, b):
+        self.car = [0, 0]
+        self.diamond = [1, 1]
+
+    def successor():
+        self.successor_states = [] # Forward, right, left, backwards
+        
+
+
+BEHAVIORS = []
+
+while DIAMOND != GOAL:
     # Read sensor values
     left_reflection = left_sensor.reflection()
     right_reflection = right_sensor.reflection()
@@ -54,12 +79,11 @@ while True:
     # Determine the state based on sensor readings
     if middle_reflection < threshold:
         robot.drive(DRIVE_SPEED, 0)
-        if left_reflection > threshold:
-            robot.turn(-5)
-        elif right_reflection > threshold:
-            robot.turn(5)
     else:
         robot.stop()
+
+        if left_reflection < threshold:
+            robot.turn(90)
 
 """
         if middle_reflection > threshold:
