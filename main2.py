@@ -75,9 +75,6 @@ def turn_and_drive(turn):
         drive_forward()
   
 
-# def adjust_route(current_sign, previous_sign):
-
-
 for i, sign in route:
     if i is not 0:
         if sign == route[i - 1]:
