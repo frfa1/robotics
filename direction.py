@@ -1,4 +1,4 @@
 class Direction:
-    def __init__(self, sp, char):
-        self.sp = sp
+    def __init__(self, coordinate, char):
+        self.coordinate = coordinate
         self.char = char

@@ -41,19 +41,19 @@ class Board:
     def moves_available(self):
         available_moves = []
         for direction in directions:
-            if self.player + direction.sp not in self.walls:
-                if self.player + direction.sp in self.diamonds:
-                    if self.player + direction.sp.double() not in self.diamonds.union(self.walls):
+            if self.player + direction.coordinate not in self.walls:
+                if self.player + direction.coordinate in self.diamonds:
+                    if self.player + direction.coordinate.double() not in self.diamonds.union(self.walls):
                         available_moves.append(direction)
                 else:
                     available_moves.append(direction)
         return available_moves
 
     def move(self, direction):
-        new_position = self.player + direction.sp
+        new_position = self.player + direction.coordinate
         if new_position in self.diamonds:
             self.diamonds.remove(new_position)
-            self.diamonds.add(new_position + direction.sp)
+            self.diamonds.add(new_position + direction.coordinate)
         self.player = new_position
         self.dir_list.append(direction)
 
