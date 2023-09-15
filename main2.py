@@ -105,11 +105,11 @@ for i, sign in route:
             elif sign == RIGHT and route[i - 1] == LEFT:
                 turn_and_drive(TURN_180)
     else:
-        if sign == 'u':
+        if sign == UP:
             drive_forward()
-        elif sign == 'r':
+        elif sign == RIGHT:
             turn_and_drive(RIGHT_TURN)
-        elif sign == 'l':
+        elif sign == LEFT:
             turn_and_drive(LEFT_TURN)
-        elif sign == 'd':
+        elif sign == DOWN:
             turn_and_drive(TURN_180)
