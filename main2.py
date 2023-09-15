@@ -21,14 +21,15 @@ middle_sensor = ColorSensor(Port.S3)
 route = ["u", "l"]
 
 # Initialize drive base
-robot = DriveBase(left_motor, right_motor, wheel_diameter=442, axle_track=1600)
+robot = DriveBase(left_motor, right_motor, wheel_diameter=826, axle_track=1700)
 
 BLACK = 5
-GRAY = 80
-threshold = (BLACK + GRAY) / 2  # 42.5
-DRIVE_SPEED = 1000
-RIGHT_TURN = 90
-LEFT_TURN = -90
+GRAY = 60
+MIDDLE_EDGE = 25
+threshold = (BLACK + GRAY) / 2  # 32.5
+DRIVE_SPEED = 500
+RIGHT_TURN = -90
+LEFT_TURN = 90
 TURN_180 = 180
 LEFT_DIRECTION = 'left'
 RIGHT_DIRECTION = 'right'
@@ -41,6 +42,9 @@ DOWN = 'd'
 CORRECTION_DURATION = 500  # Time in milliseconds
 CORRECTION_SPEED = 300     # Speed for correction
 
+robot.turn(90)
+exit()
+
 def correct_robot(direction):
         if direction == LEFT_DIRECTION:
             robot.turn(-20)
@@ -51,65 +55,86 @@ def correct_robot(direction):
 
 def drive_forward():
     should_drive = True
-    robot.drive(DRIVE_SPEED, 0)
     while should_drive:
+        robot.drive(DRIVE_SPEED, 0)
+
         left_reflection = left_sensor.reflection()
         right_reflection = right_sensor.reflection()
         middle_reflection = middle_sensor.reflection()
 
-        if left_reflection < threshold and middle_reflection < threshold and right_reflection < threshold:
+        if (left_reflection < threshold) and (middle_reflection < threshold) and (right_reflection < threshold):
+            print(17)
             should_drive = False
         elif middle_reflection < threshold and left_reflection < threshold:
+            print(18)
             should_drive = False
         elif middle_reflection < threshold and right_reflection < threshold:
+            print(19)
             should_drive = False
-        elif left_reflection < threshold:
-            correct_robot(LEFT_DIRECTION)
-        elif right_reflection < threshold:
-            correct_robot(RIGHT_DIRECTION)
+        #elif left_reflection < threshold:
+        #    correct_robot(LEFT_DIRECTION)
+        #elif right_reflection < threshold:
+        #    correct_robot(RIGHT_DIRECTION)
 
         wait(100)
 
 def turn_and_drive(turn):
         robot.turn(turn)
         drive_forward()
-  
 
-for i, sign in route:
+
+for i, sign in enumerate(route):
     if i is not 0:
         if sign == route[i - 1]:
             drive_forward()
+            print(1)
         else:
             if sign == UP and route[i - 1] == RIGHT:
                 turn_and_drive(LEFT_TURN)
+                print(2)
             elif sign == UP and route[i - 1] == LEFT:
                 turn_and_drive(RIGHT_TURN)
+                print(3)
             elif sign == UP and route[i - 1] == DOWN:
                 turn_and_drive(TURN_180)
+                print(4)
             elif sign == LEFT and route[i - 1] == UP:
                 turn_and_drive(LEFT_TURN)
+                print(5)
             elif sign == LEFT and route[i - 1] == DOWN:
                 turn_and_drive(RIGHT_TURN)
+                print(5)
             elif sign == LEFT and route[i - 1] == RIGHT:
                 turn_and_drive(TURN_180)
+                print(6)
             elif sign == DOWN and route[i - 1] == LEFT:
                 turn_and_drive(LEFT_TURN)
+                print(7)
             elif sign == DOWN and route[i - 1] == RIGHT:
                 turn_and_drive(RIGHT_TURN)
+                print(8)
             elif sign == DOWN and route[i - 1] == UP:
                 turn_and_drive(TURN_180)
+                print(9)
             elif sign == RIGHT and route[i - 1] == UP:
                 turn_and_drive(RIGHT_TURN)
+                print(10)
             elif sign == RIGHT and route[i - 1] == DOWN:
                 turn_and_drive(LEFT_TURN)
+                print(11)
             elif sign == RIGHT and route[i - 1] == LEFT:
                 turn_and_drive(TURN_180)
+                print(12)
     else:
         if sign == UP:
             drive_forward()
+            print(13)
         elif sign == RIGHT:
             turn_and_drive(RIGHT_TURN)
+            print(14)
         elif sign == LEFT:
             turn_and_drive(LEFT_TURN)
+            print(15)
         elif sign == DOWN:
             turn_and_drive(TURN_180)
+            print(16)
