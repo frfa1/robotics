@@ -4,7 +4,6 @@ from pybricks.ev3devices import Motor, ColorSensor
 from pybricks.parameters import Port
 from pybricks.robotics import DriveBase
 from pybricks.tools import wait
-import random
 
 # Create your objects here.
 ev3 = EV3Brick()
@@ -25,9 +24,14 @@ robot = DriveBase(left_motor, right_motor, wheel_diameter=826, axle_track=1700)
 
 BLACK = 5
 GRAY = 60
-MIDDLE_EDGE = 25
+
+MIDDLE_SENSOR_WHITE = 70
+MIDDLE_SENSOR_BLACK = 9
+MIDDLE_SENSOR_THRESHOLD = (MIDDLE_SENSOR_WHITE + MIDDLE_SENSOR_BLACK) / 2
+PROPORTIONAL_GAIN = 1.2
+
 threshold = (BLACK + GRAY) / 2  # 32.5
-DRIVE_SPEED = 500
+DRIVE_SPEED = 100
 RIGHT_TURN = -90
 LEFT_TURN = 90
 TURN_180 = 180
@@ -42,21 +46,12 @@ DOWN = 'd'
 CORRECTION_DURATION = 500  # Time in milliseconds
 CORRECTION_SPEED = 300     # Speed for correction
 
-robot.turn(90)
-exit()
-
-def correct_robot(direction):
-        if direction == LEFT_DIRECTION:
-            robot.turn(-20)
-        elif direction == RIGHT_DIRECTION:
-            robot.turn(20)
-        robot.drive(CORRECTION_SPEED, 0)
-        wait(CORRECTION_DURATION)
-
 def drive_forward():
     should_drive = True
     while should_drive:
-        robot.drive(DRIVE_SPEED, 0)
+        deviation = middle_sensor.reflection() - MIDDLE_SENSOR_THRESHOLD
+        turn_rate = PROPORTIONAL_GAIN * deviation
+        robot.drive(DRIVE_SPEED, turn_rate)
 
         left_reflection = left_sensor.reflection()
         right_reflection = right_sensor.reflection()
@@ -71,10 +66,6 @@ def drive_forward():
         elif middle_reflection < threshold and right_reflection < threshold:
             print(19)
             should_drive = False
-        #elif left_reflection < threshold:
-        #    correct_robot(LEFT_DIRECTION)
-        #elif right_reflection < threshold:
-        #    correct_robot(RIGHT_DIRECTION)
 
         wait(100)
 
