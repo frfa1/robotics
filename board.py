@@ -15,6 +15,7 @@ class Board:
         self.diamonds = set()
         self.fdiamonds = frozenset()  # Since set() is not hashable
         self.player = None
+        self.last_direction = None
 
     def __eq__(self, other):
         # Check if diamonds are a subset of other.diamonds and player positions match
@@ -51,11 +52,14 @@ class Board:
 
     def move(self, direction):
         new_position = self.player + direction.coordinate
-        if new_position in self.diamonds:
-            self.diamonds.remove(new_position)
-            self.diamonds.add(new_position + direction.coordinate)
+
+        if self.player in self.diamonds and direction.char == self.last_direction:
+            self.diamonds.remove(self.player)
+            self.diamonds.add(new_position)
+            
         self.player = new_position
         self.dir_list.append(direction)
+        self.last_direction = direction.char
 
     def is_win(self):
         if self.goals.issubset(self.diamonds):
