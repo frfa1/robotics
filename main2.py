@@ -17,21 +17,21 @@ left_sensor = ColorSensor(Port.S1)
 right_sensor = ColorSensor(Port.S4)
 middle_sensor = ColorSensor(Port.S3)
 
-route = ["u", "l"]
+route = ["u", "l", "u", "r", "d", "l", "d", "r"]
 
 # Initialize drive base
 robot = DriveBase(left_motor, right_motor, wheel_diameter=826, axle_track=1700)
 
 BLACK = 5
-GRAY = 60
+GRAY = 70
 
 MIDDLE_SENSOR_WHITE = 70
-MIDDLE_SENSOR_BLACK = 9
+MIDDLE_SENSOR_BLACK = 5
 MIDDLE_SENSOR_THRESHOLD = (MIDDLE_SENSOR_WHITE + MIDDLE_SENSOR_BLACK) / 2
-PROPORTIONAL_GAIN = 1.2
+PROPORTIONAL_GAIN = 1.1
 
 threshold = (BLACK + GRAY) / 2  # 32.5
-DRIVE_SPEED = 100
+DRIVE_SPEED = 200
 RIGHT_TURN = -90
 LEFT_TURN = 90
 TURN_180 = 180
@@ -81,6 +81,7 @@ for i, sign in enumerate(route):
             print(1)
         else:
             if sign == UP and route[i - 1] == RIGHT:
+                robot.straight(1000)
                 turn_and_drive(LEFT_TURN)
                 print(2)
             elif sign == UP and route[i - 1] == LEFT:
@@ -90,6 +91,7 @@ for i, sign in enumerate(route):
                 turn_and_drive(TURN_180)
                 print(4)
             elif sign == LEFT and route[i - 1] == UP:
+                robot.straight(1000)
                 turn_and_drive(LEFT_TURN)
                 print(5)
             elif sign == LEFT and route[i - 1] == DOWN:
@@ -99,6 +101,7 @@ for i, sign in enumerate(route):
                 turn_and_drive(TURN_180)
                 print(6)
             elif sign == DOWN and route[i - 1] == LEFT:
+                robot.straight(1000)
                 turn_and_drive(LEFT_TURN)
                 print(7)
             elif sign == DOWN and route[i - 1] == RIGHT:
