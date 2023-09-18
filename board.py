@@ -46,7 +46,7 @@ class Board:
             new_position = self.player + direction.coordinate
             if new_position not in self.walls:
                 if new_position in self.diamonds:
-                    if self.player.double() not in self.diamonds.union(self.walls):
+                    if self.player + direction.coordinate.double() not in self.diamonds.union(self.walls):
                         logging.debug(f"Added {direction.char} to available_moves inside double.")
 
                         available_moves.append(direction)
