@@ -1,6 +1,7 @@
 from coordinate import Coordinate
 import logging
 from direction import Direction
+from copy import deepcopy
 
 L = Direction(Coordinate(-1, 0), 'l')
 R = Direction(Coordinate(1, 0), 'r')
@@ -59,21 +60,13 @@ class Board:
 
     def move(self, direction):
         new_position = self.player + direction.coordinate
+        newDirection = deepcopy(direction)
         if new_position in self.diamonds:
             self.diamonds.remove(new_position)
             self.diamonds.add(new_position + direction.coordinate)
+            newDirection.char += 'p'
         self.player = new_position
-        self.dir_list.append(direction)
-
-        # new_position = self.player + direction.coordinate
-
-        # if self.player in self.diamonds and direction.char == self.dir_list[-1].char:
-        #     self.diamonds.remove(self.player)
-        #     self.diamonds.add(new_position)
-            
-        # self.player = new_position
-        # self.dir_list.append(direction)
-        # self.last_direction = direction.char
+        self.dir_list.append(newDirection)
 
     def is_win(self):
         if self.goals.issubset(self.diamonds):

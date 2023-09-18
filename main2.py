@@ -46,89 +46,82 @@ DOWN = 'd'
 CORRECTION_DURATION = 500  # Time in milliseconds
 CORRECTION_SPEED = 300     # Speed for correction
 
-def drive_forward():
+def drive_forward(speed):
     should_drive = True
     while should_drive:
         deviation = middle_sensor.reflection() - MIDDLE_SENSOR_THRESHOLD
         turn_rate = PROPORTIONAL_GAIN * deviation
-        robot.drive(DRIVE_SPEED, turn_rate)
+        robot.drive(speed, turn_rate)
 
         left_reflection = left_sensor.reflection()
         right_reflection = right_sensor.reflection()
         middle_reflection = middle_sensor.reflection()
 
         if (left_reflection < threshold) and (middle_reflection < threshold) and (right_reflection < threshold):
-            print(17)
             should_drive = False
         elif middle_reflection < threshold and left_reflection < threshold:
-            print(18)
             should_drive = False
         elif middle_reflection < threshold and right_reflection < threshold:
-            print(19)
             should_drive = False
 
         wait(100)
 
 def turn_and_drive(turn):
         robot.turn(turn)
-        drive_forward()
+        drive_forward(DRIVE_SPEED)
+
+def push_diamond():
+    drive_forward(DRIVE_SPEED)
+    drive_forward(-DRIVE_SPEED)
 
 
-for i, sign in enumerate(route):
+def drive_direction(sign, previousSign):
+    if sign == UP and previousSign == RIGHT:
+        robot.straight(1000)
+        turn_and_drive(LEFT_TURN)
+    elif sign == UP and previousSign == LEFT:
+        turn_and_drive(RIGHT_TURN)
+    elif sign == UP and previousSign == DOWN:
+        turn_and_drive(TURN_180)
+    elif sign == LEFT and previousSign == UP:
+        turn_and_drive(LEFT_TURN)
+    elif sign == LEFT and previousSign == DOWN:
+        robot.straight(1000)
+        turn_and_drive(RIGHT_TURN)
+    elif sign == LEFT and previousSign == RIGHT:
+        turn_and_drive(TURN_180)
+    elif sign == DOWN and previousSign == LEFT:
+        robot.straight(1000)
+        turn_and_drive(LEFT_TURN)
+    elif sign == DOWN and previousSign == RIGHT:
+        turn_and_drive(RIGHT_TURN)
+    elif sign == DOWN and previousSign == UP:
+        turn_and_drive(TURN_180)
+    elif sign == RIGHT and previousSign == UP:
+        turn_and_drive(RIGHT_TURN)
+    elif sign == RIGHT and previousSign == DOWN:
+        turn_and_drive(LEFT_TURN)
+    elif sign == RIGHT and previousSign == LEFT:
+        turn_and_drive(TURN_180)
+
+for i, signs in enumerate(route):
     if i is not 0:
+        sign = signs[0]
+        previousSign = route[i - 1]
         if sign == route[i - 1]:
-            drive_forward()
+            drive_forward(DRIVE_SPEED)
             print(1)
+        elif signs.__contains__('p'):
+            drive_direction(sign, previousSign)
+            push_diamond()
         else:
-            if sign == UP and route[i - 1] == RIGHT:
-                robot.straight(1000)
-                turn_and_drive(LEFT_TURN)
-                print(2)
-            elif sign == UP and route[i - 1] == LEFT:
-                turn_and_drive(RIGHT_TURN)
-                print(3)
-            elif sign == UP and route[i - 1] == DOWN:
-                turn_and_drive(TURN_180)
-                print(4)
-            elif sign == LEFT and route[i - 1] == UP:
-                robot.straight(1000)
-                turn_and_drive(LEFT_TURN)
-                print(5)
-            elif sign == LEFT and route[i - 1] == DOWN:
-                turn_and_drive(RIGHT_TURN)
-                print(5)
-            elif sign == LEFT and route[i - 1] == RIGHT:
-                turn_and_drive(TURN_180)
-                print(6)
-            elif sign == DOWN and route[i - 1] == LEFT:
-                robot.straight(1000)
-                turn_and_drive(LEFT_TURN)
-                print(7)
-            elif sign == DOWN and route[i - 1] == RIGHT:
-                turn_and_drive(RIGHT_TURN)
-                print(8)
-            elif sign == DOWN and route[i - 1] == UP:
-                turn_and_drive(TURN_180)
-                print(9)
-            elif sign == RIGHT and route[i - 1] == UP:
-                turn_and_drive(RIGHT_TURN)
-                print(10)
-            elif sign == RIGHT and route[i - 1] == DOWN:
-                turn_and_drive(LEFT_TURN)
-                print(11)
-            elif sign == RIGHT and route[i - 1] == LEFT:
-                turn_and_drive(TURN_180)
-                print(12)
+            drive_direction(sign, previousSign)
     else:
         if sign == UP:
             drive_forward()
-            print(13)
         elif sign == RIGHT:
             turn_and_drive(RIGHT_TURN)
-            print(14)
         elif sign == LEFT:
             turn_and_drive(LEFT_TURN)
-            print(15)
         elif sign == DOWN:
             turn_and_drive(TURN_180)
-            print(16)
