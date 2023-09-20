@@ -22,7 +22,9 @@ middle_sensor = ColorSensor(Port.S3)
 #route = ["up", "l"]#, "rp", "l"]
 #route = ["r", "r", "d", "l", "d", "l", "l", "u", "rp", "rp", "l", "l", "d", "r", "r", "r", "up", "up"]
 #route = ["up", "up"]
-route = ["up", "d"]
+#route = ["up", "r"]
+# route = ["d", "rp", "rp", "l", "l", "d", "rp", "l", "d", "rp", "rp", "up", "r", "up", "lp", "r", "d", "l", "l", "l", "u", "rp", "l", "u", "r", "r", "dp", "r", "d", "lp", "lp"]
+route = ["d", "rp", "rp", "l", "l", "d", "d", "rp", "rp", "u", "lp", "r", "r", "up"]
 
 # Initialize drive base
 robot = DriveBase(left_motor, right_motor, wheel_diameter=826, axle_track=1700)
@@ -100,10 +102,10 @@ def drive_forward(speed):
 def turn_and_drive(turn):
         if turn == 180:
             robot.turn(100)
-            for i in range(0, 80, 4):
+            for i in range(0, 80, 1):
                 middle_reflection = middle_sensor.reflection()
                 if middle_reflection > MIDDLE_SENSOR_THRESHOLD:
-                    robot.turn(4)
+                    robot.turn(1)
                 else:
                     robot.turn(5)
         else:
@@ -115,8 +117,9 @@ def push_diamond(sign, nextSign):
     drive_forward(DRIVE_SPEED)
     robot.straight(-1000)
     turn_and_drive(180)
-    robot.straight(1500)
+    drive_forward(DRIVE_SPEED)
     if not is_opposite_way(sign, nextSign):
+        robot.straight(2000)
         turn_and_drive(180)
 
 
@@ -177,7 +180,8 @@ def drive_direction(sign, previousSign, containsP, nextSign):
 for i, signs in enumerate(route):
     sign = signs[0]
     previousSign = route[i - 1][0]
-    nextSign = route[i + 1][0]
+    if i+1 < len(route):
+        nextSign = route[i + 1][0]
     if i is not 0:
         if sign == route[i - 1][0]:
             robot.straight(1000)
@@ -199,4 +203,4 @@ for i, signs in enumerate(route):
         elif sign == DOWN:
             turn_and_drive(TURN_180)
         if "p" in signs:
-            push_diamond()
+            push_diamond(sign, nextSign)
