@@ -91,46 +91,51 @@ def push_diamond():
     drive_forward(-DRIVE_SPEED)
 
 
-def drive_direction(sign, previousSign):
+def drive_direction(sign, previousSign, containsP):
+
+    correctionDistance = 1000
+    if containsP:
+        correctionDistance = -1000
+
     if sign == UP and previousSign == RIGHT:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(LEFT_TURN)
 
     elif sign == UP and previousSign == LEFT:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(RIGHT_TURN)
 
     elif sign == UP and previousSign == DOWN:
         turn_and_drive(TURN_180)
 
     elif sign == LEFT and previousSign == UP:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(LEFT_TURN)
 
     elif sign == LEFT and previousSign == DOWN:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(RIGHT_TURN)
 
     elif sign == LEFT and previousSign == RIGHT:
         turn_and_drive(TURN_180)
 
     elif sign == DOWN and previousSign == LEFT:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(LEFT_TURN)
 
     elif sign == DOWN and previousSign == RIGHT:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(RIGHT_TURN)
 
     elif sign == DOWN and previousSign == UP:
         turn_and_drive(TURN_180)
 
     elif sign == RIGHT and previousSign == UP:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(RIGHT_TURN)
 
     elif sign == RIGHT and previousSign == DOWN:
-        robot.straight(1000)
+        robot.straight(correctionDistance)
         turn_and_drive(LEFT_TURN)
         
     elif sign == RIGHT and previousSign == LEFT:
@@ -140,16 +145,14 @@ for i, signs in enumerate(route):
     sign = signs[0]
     previousSign = route[i - 1]
     if i is not 0:
-        #sign = signs[0]
-        #previousSign = route[i - 1]
         if sign == route[i - 1]:
             drive_forward(DRIVE_SPEED)
             print(1)
         elif "p" in signs:
-            drive_direction(sign, previousSign)
+            drive_direction(sign, previousSign, True)
             push_diamond()
         else:
-            drive_direction(sign, previousSign)
+            drive_direction(sign, previousSign, False)
     else:
         if sign == UP:
             drive_forward(DRIVE_SPEED)
