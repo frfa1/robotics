@@ -21,7 +21,8 @@ middle_sensor = ColorSensor(Port.S3)
 #route = ["u", "l"]
 #route = ["up", "l"]#, "rp", "l"]
 #route = ["r", "r", "d", "l", "d", "l", "l", "u", "rp", "rp", "l", "l", "d", "r", "r", "r", "up", "up"]
-route = ["up", "up"]
+#route = ["up", "up"]
+route = ["up", "d"]
 
 # Initialize drive base
 robot = DriveBase(left_motor, right_motor, wheel_diameter=826, axle_track=1700)
@@ -87,7 +88,16 @@ def drive_forward(speed):
         #wait(10)
 
 def turn_and_drive(turn):
-        robot.turn(turn)
+        if turn == 180:
+            robot.turn(100)
+            for i in range(0, 80, 4):
+                middle_reflection = middle_sensor.reflection()
+                if middle_reflection > MIDDLE_SENSOR_THRESHOLD:
+                    robot.turn(4)
+                else:
+                    robot.turn(5)
+        else:
+            robot.turn(turn)
         drive_forward(DRIVE_SPEED)
 
 def push_diamond():
@@ -95,7 +105,7 @@ def push_diamond():
     drive_forward(DRIVE_SPEED)
     robot.straight(-1000)
     turn_and_drive(180)
-    robot.straight(2000)
+    robot.straight(1500)
     turn_and_drive(180)
     #drive_forward(-DRIVE_SPEED)
 
@@ -155,6 +165,7 @@ for i, signs in enumerate(route):
     previousSign = route[i - 1][0]
     if i is not 0:
         if sign == route[i - 1][0]:
+            robot.straight(1000)
             drive_forward(DRIVE_SPEED)
             if "p" in signs:
                 push_diamond()
