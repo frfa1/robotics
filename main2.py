@@ -145,9 +145,10 @@ for i, signs in enumerate(route):
     sign = signs[0]
     previousSign = route[i - 1]
     if i is not 0:
-        if sign == route[i - 1]:
+        if sign == route[i - 1][0]:
             drive_forward(DRIVE_SPEED)
-            print(1)
+            if "p" in signs:
+                push_diamond()
         elif "p" in signs:
             drive_direction(sign, previousSign, True)
             push_diamond()
