@@ -120,7 +120,7 @@ def push_diamond(sign, nextSign):
         turn_and_drive(180)
 
 
-def drive_direction(sign, previousSign, containsP):
+def drive_direction(sign, previousSign, containsP, nextSign):
 
     correctionDistance = 1000
     if containsP:
@@ -135,7 +135,8 @@ def drive_direction(sign, previousSign, containsP):
         turn_and_drive(RIGHT_TURN)
 
     elif sign == UP and previousSign == DOWN:
-        turn_and_drive(TURN_180)
+        robot.straight(correctionDistance)
+        turn_and_drive(0)
 
     elif sign == LEFT and previousSign == UP:
         robot.straight(correctionDistance)
@@ -146,7 +147,8 @@ def drive_direction(sign, previousSign, containsP):
         turn_and_drive(RIGHT_TURN)
 
     elif sign == LEFT and previousSign == RIGHT:
-        turn_and_drive(TURN_180)
+        robot.straight(correctionDistance)
+        turn_and_drive(0)
 
     elif sign == DOWN and previousSign == LEFT:
         robot.straight(correctionDistance)
@@ -157,7 +159,8 @@ def drive_direction(sign, previousSign, containsP):
         turn_and_drive(RIGHT_TURN)
 
     elif sign == DOWN and previousSign == UP:
-        turn_and_drive(TURN_180)
+        robot.straight(correctionDistance)
+        turn_and_drive(0)
 
     elif sign == RIGHT and previousSign == UP:
         robot.straight(correctionDistance)
@@ -168,7 +171,8 @@ def drive_direction(sign, previousSign, containsP):
         turn_and_drive(LEFT_TURN)
         
     elif sign == RIGHT and previousSign == LEFT:
-        turn_and_drive(TURN_180)
+        robot.straight(correctionDistance)
+        turn_and_drive(0)
 
 for i, signs in enumerate(route):
     sign = signs[0]
@@ -181,10 +185,10 @@ for i, signs in enumerate(route):
             if "p" in signs:
                 push_diamond(sign, nextSign)
         elif "p" in signs:
-            drive_direction(sign, previousSign, False)
+            drive_direction(sign, previousSign, False, nextSign)
             push_diamond(sign, nextSign)
         else:
-            drive_direction(sign, previousSign, False)
+            drive_direction(sign, previousSign, False, nextSign)
     else:
         if sign == UP:
             drive_forward(DRIVE_SPEED)
