@@ -55,6 +55,16 @@ DOWN = 'd'
 CORRECTION_DURATION = 500  # Time in milliseconds
 CORRECTION_SPEED = 300     # Speed for correction
 
+def is_opposite_way(sign, nextSign):
+    if sign == 'r' and nextSign == 'l':
+        return True
+    elif sign == 'r' and nextSign == 'l':
+        return True
+    elif sign == 'u' and nextSign == 'd':
+        return True
+    elif sign == 'd' and nextSign == 'u':
+        return True
+
 def drive_forward(speed):
     should_drive = True
     while should_drive:
@@ -100,14 +110,14 @@ def turn_and_drive(turn):
             robot.turn(turn)
         drive_forward(DRIVE_SPEED)
 
-def push_diamond():
+def push_diamond(sign, nextSign):
     robot.straight(1000)
     drive_forward(DRIVE_SPEED)
     robot.straight(-1000)
     turn_and_drive(180)
     robot.straight(1500)
-    turn_and_drive(180)
-    #drive_forward(-DRIVE_SPEED)
+    if not is_opposite_way(sign, nextSign):
+        turn_and_drive(180)
 
 
 def drive_direction(sign, previousSign, containsP):
@@ -163,15 +173,16 @@ def drive_direction(sign, previousSign, containsP):
 for i, signs in enumerate(route):
     sign = signs[0]
     previousSign = route[i - 1][0]
+    nextSign = route[i + 1][0]
     if i is not 0:
         if sign == route[i - 1][0]:
             robot.straight(1000)
             drive_forward(DRIVE_SPEED)
             if "p" in signs:
-                push_diamond()
+                push_diamond(sign, nextSign)
         elif "p" in signs:
             drive_direction(sign, previousSign, False)
-            push_diamond()
+            push_diamond(sign, nextSign)
         else:
             drive_direction(sign, previousSign, False)
     else:
