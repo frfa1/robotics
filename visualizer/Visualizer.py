@@ -8,7 +8,7 @@ import numpy as np
 
 broker="res85.itu.dk"
 port = 1883
-topic = "mapdata/"
+topic = "bugbotdata/"
 client_id = f'python-mqtt-{"myclientID2233"}'
 username = 'advanced2023'
 password = 'theowlsarenot1992'
