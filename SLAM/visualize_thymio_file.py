@@ -8,7 +8,7 @@ class visualizer:
     username = 'advanced2023'
     password = 'theowlsarenot1992'
     port = 1883
-    topic = "mapdata/"  # note: give it your own name so you wont communicate with other robots
+    topic = "bugbotdata/"  # note: give it your own name so you wont communicate with other robots
 
 
     global client
