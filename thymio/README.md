@@ -15,7 +15,6 @@
 # Inside Rasberry Pi (terminal 1)
 
 - flatpak run --command=thymio-device-manager org.mobsya.ThymioSuite
-- python3.11 SLAM.py
 
 # Inside Rasberry Pi (terminal 2)
 
