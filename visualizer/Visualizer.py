@@ -7,12 +7,12 @@ import numpy as np
 
 
 # broker="res85.itu.dk"
-broker = "broker.emqx.io"
+broker = "192.168.74.21"
 port = 1883
 topic = "bugbotdata/"
 client_id = f'python-mqtt-{"myclientID2233"}'
 username = 'advanced2023'
-password = 'theowlsarenot1992'
+password = ''
 
 
 screen = pygame.display.set_mode((500, 500))
