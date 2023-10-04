@@ -7,8 +7,8 @@ from random import random
 
 # Constants
 ###########
-R = 0.02  # radius of wheels in meters
-L = 0.10  # distance between wheels in meters
+R = 0.0365  # radius of wheels in meters
+L = 0.077  # distance between wheels in meters
 
 W = 2.0  # width of arena
 H = 2.0  # height of arena
