@@ -12,7 +12,7 @@ port = 1883
 topic = "bugbotdata/"
 client_id = f'python-mqtt-{"myclientID2233"}'
 username = 'advanced2023'
-password = ''
+password = 'theowlsarenot1992'
 
 
 screen = pygame.display.set_mode((500, 500))
