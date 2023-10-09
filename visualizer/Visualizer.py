@@ -6,8 +6,8 @@ from paho.mqtt import client as mqtt_client
 import numpy as np
 
 
-# broker="res85.itu.dk"
-broker = "broker.emqx.io"
+broker="res85.itu.dk"
+# broker = "broker.emqx.io"
 port = 1883
 topic = "bugbotdata/"
 client_id = f'python-mqtt-{"myclientID2233"}'
