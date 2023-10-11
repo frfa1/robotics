@@ -34,9 +34,6 @@ class RoombaController:
 
                         await client.sleep(0.3)
 
-                print("Roomba stopped successfully!")
-                self.stop_robot(node)
-
             client.run_async_program(roomba_behavior)
 
     def move_forward(self, node):
