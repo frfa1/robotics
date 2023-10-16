@@ -10,19 +10,20 @@ from visualize_thymio_file import visualizer
 from multiprocessing import Pipe
 import json
 
-MAP_SIZE_PIXELS = 250
+MAP_SIZE_PIXELS = 500
 MAP_SIZE_METERS = 15
 LIDAR_DEVICE = '/dev/ttyUSB0'
 wheel_radius_mm = 21
 half_axl_length_mm = 45
 
 class LidarController:
-    def __init__(self, device, slam_obj, thymio_vehicle_obj):
+    def __init__(self, device, slam_obj, thymio_vehicle_obj, is_sleeping):
         self.lidar = Lidar(device)
         self.slam = slam_obj
         self.thymio = thymio_vehicle_obj
         self.viz = visualizer()
         self.pose = [0, 0, 0]
+        self.is_sleeping = False
 
         # Create an RMHC SLAM object with a laser model and optional robot model
         self.mapbytes = bytearray(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS)
@@ -32,21 +33,22 @@ class LidarController:
         self.iterator = self.lidar.iter_scans()
 
         def avoidanceBehavior(prox_values):
-            left_wheel_speed = 0
-            right_wheel_speed = 0
-            min_distance = sum(prox_values)
+            left_sensor = prox_values[0]
+            middle_sensor = prox_values[2]
+            right_sensor = prox_values[4]
 
-            if min_distance > 4000:  # If any sensor reads within 5 cm
-                left_wheel_speed = -100  # Move backward
-                right_wheel_speed = -100
-            else:
-            # Randomly change direction every 10 seconds (100 * robot_timestep)
-                # if random.randint(1, 1000) == 1:
-                left_wheel_speed = random.randint(0, 200)
-                right_wheel_speed = random.randint(0, 200)
-                # else:
-            return left_wheel_speed, right_wheel_speed
+            if left_sensor > 1000:
+                return -100, 100
 
+            if middle_sensor > 1500:
+                self.is_sleeping = True
+                return -100, 100
+            
+            if right_sensor > 1000:
+                return 100, -100
+            
+            return 100, 100
+            
         # Use the ClientAsync context manager to handle the connection to the Thymio robot.
         with ClientAsync() as client:
 
@@ -96,9 +98,33 @@ class LidarController:
 
                         if not in_front:
                             speeds = avoidanceBehavior(prox_values)
+                            # time.sleep(5)
                             node.v.motor.left.target = speeds[1]
                             node.v.motor.right.target = speeds[0]
                         node.flush()  # Send the set commands to the robot.
+                        
+                        current_time = time.time()
+                        while self.is_sleeping:
+                            poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
+                            # Update SLAM with current Lidar scan and scan angles if adequate
+                            if len(distances) > self.MIN_SAMPLES:
+                                self.slam.update(distances, pose_change=poses, scan_angles_degrees=angles)
+                                previous_distances = distances.copy()
+                                previous_angles = angles.copy()
+                            elif previous_distances is not None:
+                                self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
+                            # Get current robot position
+                            self.pose[0], self.pose[1], self.pose[2] = self.slam.getpos()
+                            print(self.pose[0], self.pose[1], self.pose[2])
+
+                            # Get current map bytes as grayscale
+                            self.slam.getmap(self.mapbytes)
+                            self.publish()
+
+                            if time.time() - current_time >= 5:
+                                self.is_sleeping = False
+
+                            await client.sleep(0.03)  # Pause for 0.3 seconds before the next iteration.
 
                         poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
 
@@ -130,8 +156,10 @@ class LidarController:
             # Run the asynchronous function to control the Thymio.
             client.run_async_program(prog)
 
-    def publish(self):
+    def slam():
+        return
 
+    def publish(self):
         self.viz.publish(self.mapbytes)
         self.viz.publish(
             json.dumps({"x_coord": str(self.pose[0]), "y_coord": str(self.pose[1]), "orientation": str(self.pose[2])}))
@@ -154,7 +182,7 @@ if __name__ == "__main__":
         thymio = ThymioVehicle(wheel_radius_mm, half_axl_length_mm, None)
         slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
         # lidar = LidarController(LIDAR_DEVICE, slam, thymio)
-        lidar = LidarController(LIDAR_DEVICE, slam, thymio)
+        lidar = LidarController(LIDAR_DEVICE, slam, thymio, False)
     except KeyboardInterrupt:
         Running = False
         # lidar.stop()
