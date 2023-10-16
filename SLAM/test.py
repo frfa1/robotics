@@ -16,6 +16,7 @@ LIDAR_DEVICE = '/dev/ttyUSB0'
 wheel_radius_mm = 21
 half_axl_length_mm = 45
 
+
 class LidarController:
     def __init__(self, device, slam_obj, thymio_vehicle_obj, is_sleeping):
         self.lidar = Lidar(device)
@@ -32,22 +33,23 @@ class LidarController:
         # Create an iterator to collect scan data from the RPLidar
         self.iterator = self.lidar.iter_scans()
 
-        def avoidanceBehavior(prox_values):
+
+        def avoidanceBehavior(prox_values, forward_speed = 200):
             left_sensor = prox_values[0]
             middle_sensor = prox_values[2]
             right_sensor = prox_values[4]
 
             if left_sensor > 1000:
-                return -100, 100
+                return -forward_speed, forward_speed
 
             if middle_sensor > 1500:
                 self.is_sleeping = True
-                return -100, 100
+                return -forward_speed, forward_speed
             
             if right_sensor > 1000:
-                return 100, -100
+                return forward_speed, -forward_speed
             
-            return 100, 100
+            return forward_speed, forward_speed
             
         # Use the ClientAsync context manager to handle the connection to the Thymio robot.
         with ClientAsync() as client:
@@ -71,10 +73,52 @@ class LidarController:
                     next(self.iterator)
                     while True:
                         in_front = False
-                        items = [item for item in next(self.iterator)]
-                        distances = [item[2] for item in items]
-                        angles = [item[1] for item in items]
+                        start_time = time.time()
 
+                        if self.is_sleeping:
+                            while self.is_sleeping:
+                                print('TURNING', time.time() - start_time )
+                                items = [item for item in next(self.iterator)]
+                                distances = [item[2] for item in items]
+                                angles = [item[1] for item in items]
+                                poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
+                                # Update SLAM with current Lidar scan and scan angles if adequate
+                                if len(distances) > self.MIN_SAMPLES:
+                                    self.slam.update(distances, pose_change=poses, scan_angles_degrees=angles)
+                                    previous_distances = distances.copy()
+                                    previous_angles = angles.copy()
+                                elif previous_distances is not None:
+                                    self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
+                                # Get current robot position
+                                self.pose[0], self.pose[1], self.pose[2] = self.slam.getpos()
+                                # Get current map bytes as grayscale
+                                self.slam.getmap(self.mapbytes)
+                                self.publish()
+
+                                if time.time() - start_time >= 1.9:
+                                    self.is_sleeping = False
+
+                                await client.sleep(0.03)  # Pause for 0.3 seconds before the next iteration.
+                        else:
+                            items = [item for item in next(self.iterator)]
+                            distances = [item[2] for item in items]
+                            angles = [item[1] for item in items]
+                            poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
+                            # Update SLAM with current Lidar scan and scan angles if adequate
+                            if len(distances) > self.MIN_SAMPLES:
+                                self.slam.update(distances, pose_change=poses, scan_angles_degrees=angles)
+                                previous_distances = distances.copy()
+                                previous_angles = angles.copy()
+                            elif previous_distances is not None:
+                                self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
+                            # Get current robot position
+                            self.pose[0], self.pose[1], self.pose[2] = self.slam.getpos()
+                            # Get current map bytes as grayscale
+                            self.slam.getmap(self.mapbytes)
+                            self.publish()
+
+
+                            await client.sleep(0.03)  # Pause for 0.3 seconds before the next iteration.
                         prox_values = node.v.prox.horizontal
                         ambiant_sensors = node.v.prox.ground.ambiant
 
@@ -90,61 +134,17 @@ class LidarController:
 
                         
                         for angle, distance in zip(angles, distances):
-                            if 175 <= angle <= 185 and distance < 600:
-                                node.v.motor.left.target = 100
-                                node.v.motor.right.target = -100
-                                in_front = True
-                                print("In front")   
+                            if 175 <= angle <= 185 and distance < 200:
+                                node.v.motor.left.target = 200
+                                node.v.motor.right.target = -200
+                                in_front = True 
 
                         if not in_front:
                             speeds = avoidanceBehavior(prox_values)
-                            # time.sleep(5)
                             node.v.motor.left.target = speeds[1]
                             node.v.motor.right.target = speeds[0]
                         node.flush()  # Send the set commands to the robot.
                         
-                        current_time = time.time()
-                        while self.is_sleeping:
-                            poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
-                            # Update SLAM with current Lidar scan and scan angles if adequate
-                            if len(distances) > self.MIN_SAMPLES:
-                                self.slam.update(distances, pose_change=poses, scan_angles_degrees=angles)
-                                previous_distances = distances.copy()
-                                previous_angles = angles.copy()
-                            elif previous_distances is not None:
-                                self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
-                            # Get current robot position
-                            self.pose[0], self.pose[1], self.pose[2] = self.slam.getpos()
-                            print(self.pose[0], self.pose[1], self.pose[2])
-
-                            # Get current map bytes as grayscale
-                            self.slam.getmap(self.mapbytes)
-                            self.publish()
-
-                            if time.time() - current_time >= 5:
-                                self.is_sleeping = False
-
-                            await client.sleep(0.03)  # Pause for 0.3 seconds before the next iteration.
-
-                        poses = self.thymio.computePoseChange(time.time(), node.v.motor.left.target,  node.v.motor.right.target)
-
-                        # Update SLAM with current Lidar scan and scan angles if adequate
-                        if len(distances) > self.MIN_SAMPLES:
-                            self.slam.update(distances, pose_change=poses, scan_angles_degrees=angles)
-                            previous_distances = distances.copy()
-                            previous_angles = angles.copy()
-                        elif previous_distances is not None:
-                            self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
-                        # Get current robot position
-                        self.pose[0], self.pose[1], self.pose[2] = self.slam.getpos()
-                        print(self.pose[0], self.pose[1], self.pose[2])
-
-                        # Get current map bytes as grayscale
-                        self.slam.getmap(self.mapbytes)
-                        self.publish()
-
-
-                        await client.sleep(0.03)  # Pause for 0.3 seconds before the next iteration.
 
                     # Once out of the loop, stop the robot and set the top LED to red.
                     print("Thymio stopped successfully!")
