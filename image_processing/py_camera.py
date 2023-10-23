@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from picamera import PiCamera ## ssh + raspberry camera needs to be on  
+from picamera import PiCamera 
 
 
 # i n i t i a l i z e
