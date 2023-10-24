@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from picamera import PiCamera
+##from picamera import PiCamera
 from time import sleep  # Import the sleep function from the time module
 
 # Initialize the Raspberry Pi camera
