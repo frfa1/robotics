@@ -34,8 +34,8 @@ sensor_positions = {
     3: (0, 0.05),    # Sensor 3 at 5 cm to the right
     4: (0, -0.05),   # Sensor 4 at 5 cm to the left
     5: (0, 0),       # Sensor 5 at the robot's center
-    6: (0, 0, -0.05), # Sensor 6 at 5 cm below the robot
-    7: (0, 0, 0.05),  # Sensor 7 at 5 cm above the robot
+    6: (0, 0, -0.05), # Sensor 6 at 5 cm below
+    7: (0, 0, 0.05),  # Sensor 7 at 5 below
 }
 
 # Maximum sensing range for the infrared sensors
@@ -45,17 +45,12 @@ front_and_back_sensors = {
     3: 2400,  # 3 cm
     4: 1600,  # 4 cm
     5: 0,     # 5 cm
-    6: 300,   # Maximum range for Sensor 6 (bottom sensor at 5 cm below)
-    7: 300,   # Maximum range for Sensor 7 (top sensor at 5 cm above)
 }
 
 # Bottom sensors data (provided)
 bottom_sensors = {
     1: 300,  # 1 cm
     2: 130,  # 2 cm
-    3: 40,   # 3 cm
-    4: 0,    # 4 cm
-    5: 0,    # 5 cm
 }
 
 # Variables

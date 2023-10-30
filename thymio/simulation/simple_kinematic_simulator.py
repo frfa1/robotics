@@ -7,8 +7,8 @@ from random import random
 
 # Constants
 ###########
-R = 0.0365  # radius of wheels in meters
-L = 0.077  # distance between wheels in meters
+R = 0.02  # radius of wheels in meters
+L = 0.10  # distance between wheels in meters
 
 W = 2.0  # width of arena
 H = 2.0  # height of arena
@@ -18,26 +18,6 @@ simulation_timestep = 0.01  # timestep in kinematics sim (probably don't touch..
 
 # the world is a rectangular arena with width W and height H
 world = LinearRing([(W/2,H/2),(-W/2,H/2),(-W/2,-H/2),(W/2,-H/2)])
-
-### CUSTOM CODE ###
-
-front_and_back_sensors = {
-    1 : 4300,
-    2 : 3500,
-    3 : 2400,
-    4 : 1600,
-    5 : 0
-}
-
-bottom_sensors = {
-    1 : 300,
-    2 : 130,
-    3 : 40,
-    4 : 0,
-    5 : 0
-}
-
-### END CUSTOM CODE ###
 
 # Variables 
 ###########
@@ -95,4 +75,3 @@ for cnt in range(5000):
         file.write( str(x) + ", " + str(y) + ", " + str(cos(q)*0.2) + ", " + str(sin(q)*0.2) + "\n")
 
 file.close()
-    
