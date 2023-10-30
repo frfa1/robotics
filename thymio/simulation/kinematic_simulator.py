@@ -40,17 +40,17 @@ sensor_positions = {
 
 # Maximum sensing range for the infrared sensors
 front_and_back_sensors = {
-    1: 4300,  # 1 cm
-    2: 3500,  # 2 cm
-    3: 2400,  # 3 cm
-    4: 1600,  # 4 cm
-    5: 0,     # 5 cm
+    1: 4300,  
+    2: 3500,  
+    3: 2400,  
+    4: 1600,  
+    5: 0,     
 }
 
 # Bottom sensors data (provided)
 bottom_sensors = {
-    1: 300,  # 1 cm
-    2: 130,  # 2 cm
+    1: 300, 
+    2: 130,  
 }
 
 # Variables

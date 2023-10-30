@@ -69,9 +69,11 @@ for cnt in range(5000):
 
     #check collision with arena walls 
     if (world.distance(Point(x,y))<L/2):
+        print("Collision with arena walls. Simulation stopping.")
         break
-        
     if cnt%50==0:
-        file.write( str(x) + ", " + str(y) + ", " + str(cos(q)*0.2) + ", " + str(sin(q)*0.2) + "\n")
+        print(f"Recording data at time step {cnt}:")
+        print(f"x: {x}, y: {y}, cos(q): {cos(q) * 0.2}, sin(q): {sin(q) * 0.2}")
+        file.write(str(x) + ", " + str(y) + ", " + str(cos(q) * 0.2) + ", " + str(sin(q) * 0.2) + "\n")
 
 file.close()
