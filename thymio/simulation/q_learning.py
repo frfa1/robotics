@@ -2,9 +2,9 @@ import numpy as np
 import random
 
 def robot_drive(action):
-    if "forward":
+    if action == "forward":
         return (100,100)
-    elif "backward":
+    elif action == "backward":
         return (-100,-100)
 
 def next_state(index_of_action):
@@ -15,20 +15,15 @@ def next_state(index_of_action):
         return 1
     else:
         return -1
-
-def close_to_wall():
-    """
-    Initial example of Q-learning where the robot is pointed towards a wall
-    and learns to stay at a certain distance to the wall.
-    """
-
+    
+def init_state_and_actions():
     # Distances to wall (in cm)
     states = [
-        100, # (Or above)
-        80,
-        60,
-        40,
-        20,
+        1, # (Or above)
+        0.8,
+        0.6,
+        0.4,
+        0.2,
         0,
     ]
     state_size = len(states)
@@ -61,57 +56,67 @@ def close_to_wall():
     moves = []
     historic_states = []
 
-    state = 100 # Initialize state as s1 (the first state)
-    for i in range(1000): # Number of simulation actions
+    state = 1 # Initialize state as s1 (the first state)
+    return states, actions, rewards, moves, historic_states, Q, state, state_size
 
-        index_of_state = states.index(state) # Get index of state
+def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size):
+    # step_size = 0.2 # size between each step
 
-        ## Takes action based on exploitation/exploration
-        epsilon = 0.1 # Percentage of exploration
-        if random.uniform(0, 1) < epsilon: # Exploration
-            action = random.choice(actions) # Random action in the state
-        else: # Exploitation
-            index_of_action = Q[index_of_state].argmax() # Get the index of the action at the state with highest reward
-            action = actions[index_of_action]
+    index_of_state = states.index(state) # Get index of state
 
-        # From action to index
-        index_of_action = actions.index(action)
+    ## Takes action based on exploitation/exploration
+    epsilon = 0.1 # Percentage of exploration
+    if random.uniform(0, 1) < epsilon: # Exploration
+        action = random.choice(actions) # Random action in the state
+    else: # Exploitation
+        index_of_action = Q[index_of_state].argmax() # Get the index of the action at the state with highest reward
+        action = actions[index_of_action]
 
-        # Illegal moves: Continue to next iteration
-        # i.e. backwards on first position, or forward on last position
-        if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
-            continue
+    # From action to index
+    index_of_action = actions.index(action)
 
-        ## Updating Q-values
-        lr, gamma = 0.1, 0.9 # Hyperparameters
+    # Illegal moves: Continue to next iteration
+    # i.e. backwards on first position, or forward on last position
+    if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
+        return
 
-        # Get next state index
-        index_of_next_state = index_of_state + next_state(index_of_action)
+    ## Updating Q-values
+    lr, gamma = 0.1, 0.9 # Hyperparameters
 
-        # Get the reward
-        reward = rewards[index_of_next_state]
+    # Get next state index
+    index_of_next_state = index_of_state + next_state(index_of_action)
 
-        #print("> INDICES")
-        #print(index_of_state, index_of_action, index_of_next_state)
+    # Get the reward
+    reward = rewards[index_of_next_state]
 
-        # Updates Q with the future step (action taken)
-        Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
+    #print("> INDICES")
+    #print(index_of_state, index_of_action, index_of_next_state)
 
-        # robot drive until reaching destination
-        # while distance != states[index_of_next_state]: # Drive action until reaches goal state
-        #   wheels = robot.drive(action) # Tuple of wheel velocities based on action
+    # Updates Q with the future step (action taken)
+    Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
 
-        # History of states and moves
-        historic_states.append(state)
-        moves.append(action)
+    
+    # robot drive until reaching destination
+    # lower_bound = states[index_of_next_state] - (step_size/10)
+    # higher_bound = states[index_of_next_state] + (step_size/10)
+    # if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
+    #     left_wheel_velocity, right_wheel_velocity = robot_drive(action) # Tuple of wheel velocities based on action
+    # else: 
+    #     doStuff = True
+    # History of states and moves
+    historic_states.append(state)
+    moves.append(action)
 
-        # Updates state before next iteration
-        state = states[index_of_next_state]
-
+    # Updates state before next iteration
+    state = states[index_of_next_state]
     print(moves)
     print(historic_states)
     print(Q)
 
+    return states, actions, rewards, moves, historic_states, Q, state, state_size, robot_drive(action)
+    # return robot_drive(action)
+
+
 
 if __name__ == "__main__":
-    close_to_wall()
+    close_to_wall(init_state_and_actions(), True)

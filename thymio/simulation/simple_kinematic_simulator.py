@@ -3,7 +3,7 @@ from shapely.geometry import LinearRing, LineString, Point
 from numpy import sin, cos, pi, sqrt
 from random import random
 
-from q_learning import close_to_wall
+from q_learning import close_to_wall, init_state_and_actions, robot_drive
 
 # A prototype simulation of a differential-drive robot with one sensor
 
@@ -51,6 +51,9 @@ def simulationstep():
 #################
 file = open("trajectory.dat", "w")
 
+
+states, actions, rewards, moves, historic_states, Q, state, state_size = init_state_and_actions()
+doStuff = True
 for cnt in range(5000):
     #simple single-ray sensor
     ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
@@ -58,14 +61,25 @@ for cnt in range(5000):
     distance = sqrt((s.x-x)**2+(s.y-y)**2)                    # distance to wall
     
     #simple controller - change direction of wheels every 10 seconds (100*robot_timestep) unless close to wall then turn on spot
-    if (distance < 0.5):
-        left_wheel_velocity = -0.4
-        right_wheel_velocity = 0.4
-    else:                
-        if cnt%100==0:
-            left_wheel_velocity = random()
-            right_wheel_velocity = random()
-        
+    # if (distance < 0.5):
+    #     left_wheel_velocity = -0.4
+    #     right_wheel_velocity = 0.4
+    # else:                
+    #     if cnt%100==0:
+    #         left_wheel_velocity = random()
+    #         right_wheel_velocity = random()
+    if doStuff:
+        print('doing stuff')
+        states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
+    step_size = 0.2 # size between each step
+    lower_bound = states[states.index(state)] - (step_size/10)
+    higher_bound = states[states.index(state)] + (step_size/10)
+    if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
+        print('NOT DOING STUFF')
+        doStuff = False
+        left_wheel_velocity, right_wheel_velocity = speeds # Tuple of wheel velocities based on action
+    else: 
+        doStuff = True
     #step simulation
     simulationstep()
 
