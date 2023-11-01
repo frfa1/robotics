@@ -3,9 +3,9 @@ import random
 
 def robot_drive(action):
     if action == "forward":
-        return (100,100)
+        return (10,10)
     elif action == "backward":
-        return (-100,-100)
+        return (-10,-10)
 
 def next_state(index_of_action):
     """
@@ -68,9 +68,11 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
     epsilon = 0.1 # Percentage of exploration
     if random.uniform(0, 1) < epsilon: # Exploration
         action = random.choice(actions) # Random action in the state
+        print('RANDOM ACTION', action)
     else: # Exploitation
         index_of_action = Q[index_of_state].argmax() # Get the index of the action at the state with highest reward
         action = actions[index_of_action]
+        print('BEST ACTION', action)
 
     # From action to index
     index_of_action = actions.index(action)
@@ -78,7 +80,7 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
     # Illegal moves: Continue to next iteration
     # i.e. backwards on first position, or forward on last position
     if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
-        return
+        return states, actions, rewards, moves, historic_states, Q, state, state_size, (0,0)
 
     ## Updating Q-values
     lr, gamma = 0.1, 0.9 # Hyperparameters
@@ -96,14 +98,6 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
     Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
 
     
-    # robot drive until reaching destination
-    # lower_bound = states[index_of_next_state] - (step_size/10)
-    # higher_bound = states[index_of_next_state] + (step_size/10)
-    # if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
-    #     left_wheel_velocity, right_wheel_velocity = robot_drive(action) # Tuple of wheel velocities based on action
-    # else: 
-    #     doStuff = True
-    # History of states and moves
     historic_states.append(state)
     moves.append(action)
 
@@ -119,4 +113,4 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
 
 
 if __name__ == "__main__":
-    close_to_wall(init_state_and_actions(), True)
+    close_to_wall(init_state_and_actions())

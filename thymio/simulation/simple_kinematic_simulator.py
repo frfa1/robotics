@@ -3,14 +3,14 @@ from shapely.geometry import LinearRing, LineString, Point
 from numpy import sin, cos, pi, sqrt
 from random import random
 
-from q_learning import close_to_wall, init_state_and_actions, robot_drive
+from q_learning import close_to_wall, init_state_and_actions
 
 # A prototype simulation of a differential-drive robot with one sensor
 
 # Constants
 ###########
-R = 0.02  # radius of wheels in meters
-L = 0.10  # distance between wheels in meters
+R = 0.0365  # radius of wheels in meters
+L = 0.077
 
 W = 2.0  # width of arena
 H = 2.0  # height of arena
@@ -68,6 +68,7 @@ for cnt in range(5000):
     #     if cnt%100==0:
     #         left_wheel_velocity = random()
     #         right_wheel_velocity = random()
+    print('DISTANCE: ', distance)
     if doStuff:
         print('doing stuff')
         states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
