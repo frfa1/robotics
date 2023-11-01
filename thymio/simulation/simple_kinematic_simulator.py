@@ -1,9 +1,11 @@
 import shapely
 from shapely.geometry import LinearRing, LineString, Point
 from numpy import sin, cos, pi, sqrt
-from random import random
+import numpy as np
+# from random import random
+import random
 
-from q_learning import close_to_wall, init_state_and_actions
+from q_learning import close_to_wall, init_state_and_actions, next_state, robot_drive
 
 # A prototype simulation of a differential-drive robot with one sensor
 
@@ -28,8 +30,8 @@ x = 0.0   # robot position in meters - x direction - positive to the right
 y = 0.0   # robot position in meters - y direction - positive up
 q = 0.0   # robot heading with respect to x-axis in radians 
 
-left_wheel_velocity =  random()   # robot left wheel velocity in radians/s
-right_wheel_velocity =  random()  # robot right wheel velocity in radians/s
+left_wheel_velocity =  0   # robot left wheel velocity in radians/s
+right_wheel_velocity =  0  # robot right wheel velocity in radians/s
 
 # Kinematic model
 #################
@@ -49,10 +51,8 @@ def simulationstep():
 
 # Simulation loop
 #################
-file = open("trajectory.dat", "w")
-
-
 states, actions, rewards, moves, historic_states, Q, state, state_size = init_state_and_actions()
+file = open("trajectory.dat", "w")
 doStuff = True
 for cnt in range(5000):
     #simple single-ray sensor
@@ -71,14 +71,59 @@ for cnt in range(5000):
     print('DISTANCE: ', distance)
     if doStuff:
         print('doing stuff')
-        states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
+        index_of_state = states.index(state) # Get index of state
+
+        ## Takes action based on exploitation/exploration
+        epsilon = 0.1 # Percentage of exploration
+        if random.uniform(0, 1) < epsilon: # Exploration
+            action = random.choice(actions) # Random action in the state
+            print('RANDOM ACTION', action)
+        else: # Exploitation
+            index_of_action = Q[index_of_state].argmax() # Get the index of the action at the state with highest reward
+            action = actions[index_of_action]
+            print('BEST ACTION', action)
+
+    # From action to index
+        index_of_action = actions.index(action)
+
+    # Illegal moves: Continue to next iteration
+    # i.e. backwards on first position, or forward on last position
+        if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
+            continue
+
+        ## Updating Q-values
+        lr, gamma = 0.1, 0.9 # Hyperparameters
+
+        # Get next state index
+        index_of_next_state = index_of_state + next_state(index_of_action)
+
+        # Get the reward
+        reward = rewards[index_of_next_state]
+
+        #print("> INDICES")
+        #print(index_of_state, index_of_action, index_of_next_state)
+
+        # Updates Q with the future step (action taken)
+        Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
+
+        
+        historic_states.append(state)
+        moves.append(action)
+
+        # Updates state before next iteration
+        state = states[index_of_next_state]
+        print(moves)
+        print(historic_states)
+        print(Q)
+
+        # states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
     step_size = 0.2 # size between each step
     lower_bound = states[states.index(state)] - (step_size/10)
     higher_bound = states[states.index(state)] + (step_size/10)
     if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
         print('NOT DOING STUFF')
         doStuff = False
-        left_wheel_velocity, right_wheel_velocity = speeds # Tuple of wheel velocities based on action
+        left_wheel_velocity, right_wheel_velocity = robot_drive(action) # Tuple of wheel velocities based on action
     else: 
         doStuff = True
     #step simulation
