@@ -1,6 +1,12 @@
 import numpy as np
 import random
 
+def robot_drive(action):
+    if "forward":
+        return (100,100)
+    elif "backward":
+        return (-100,-100)
+
 def next_state(index_of_action):
     """
     Defines the next state based on an action
@@ -9,7 +15,6 @@ def next_state(index_of_action):
         return 1
     else:
         return -1
-
 
 def close_to_wall():
     """
@@ -91,6 +96,10 @@ def close_to_wall():
 
         # Updates Q with the future step (action taken)
         Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
+
+        # robot drive until reaching destination
+        # while distance != states[index_of_next_state]: # Drive action until reaches goal state
+        #   wheels = robot.drive(action) # Tuple of wheel velocities based on action
 
         # History of states and moves
         historic_states.append(state)
