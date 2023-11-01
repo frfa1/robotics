@@ -3,6 +3,8 @@ from shapely.geometry import LinearRing, LineString, Point
 from numpy import sin, cos, pi, sqrt
 from random import random
 
+from q_learning import close_to_wall
+
 # A prototype simulation of a differential-drive robot with one sensor
 
 # Constants

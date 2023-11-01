@@ -48,25 +48,22 @@ def close_to_wall():
     # Initialize q-table values to 0
     Q = np.zeros((state_size, action_size))
 
+    # Illegal moves
+    Q[0,1] = -100
+    Q[state_size-1, 0] = -100
+
     # All moves
     moves = []
     historic_states = []
 
     state = 100 # Initialize state as s1 (the first state)
-    for i in range(10): # Number of simulation actions
+    for i in range(1000): # Number of simulation actions
 
         index_of_state = states.index(state) # Get index of state
-
-        print("CURRENT Q")
-        print(Q)
-
-        print("STATE & INDEX OF STATE")
-        print(state, index_of_state)
 
         ## Takes action based on exploitation/exploration
         epsilon = 0.1 # Percentage of exploration
         if random.uniform(0, 1) < epsilon: # Exploration
-            print("RANDOM CHOICE TAKEN")
             action = random.choice(actions) # Random action in the state
         else: # Exploitation
             index_of_action = Q[index_of_state].argmax() # Get the index of the action at the state with highest reward
@@ -80,19 +77,14 @@ def close_to_wall():
         if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
             continue
 
-        print("INDEX OF ACTION WITH HIGHEST REWARD")
-        print(index_of_action)
-
         ## Updating Q-values
         lr, gamma = 0.1, 0.9 # Hyperparameters
 
         # Get next state index
         index_of_next_state = index_of_state + next_state(index_of_action)
-        print("INDEX OF NEXT STATE", index_of_next_state)
 
         # Get the reward
         reward = rewards[index_of_next_state]
-        print("REWARD OF NEXT STATE", reward)
 
         #print("> INDICES")
         #print(index_of_state, index_of_action, index_of_next_state)
@@ -107,16 +99,10 @@ def close_to_wall():
         # Updates state before next iteration
         state = states[index_of_next_state]
 
-        print("Action", action)
-
-        #print(Q)
-
-        print("---")
-        print("\n")
-
     print(moves)
     print(historic_states)
     print(Q)
 
 
-close_to_wall()
+if __name__ == "__main__":
+    close_to_wall()
