@@ -18,7 +18,7 @@ def next_state(index_of_action):
     
 def init_state_and_actions():
     # Distances to wall (in cm)
-    states = [
+    states = [  
         1, # (Or above)
         0.8,
         0.6,
@@ -54,7 +54,7 @@ def init_state_and_actions():
 
     # All moves
     moves = []
-    historic_states = []
+    historic_states = [] ## keep the track of the states that the robot has visited during its interactions with the ennvironment .
 
     state = 1 # Initialize state as s1 (the first state)
     return states, actions, rewards, moves, historic_states, Q, state, state_size
@@ -65,7 +65,7 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
     index_of_state = states.index(state) # Get index of state
 
     ## Takes action based on exploitation/exploration
-    epsilon = 0.1 # Percentage of exploration
+    epsilon = 0.1 # 10 % Percentage of exploration
     if random.uniform(0, 1) < epsilon: # Exploration
         action = random.choice(actions) # Random action in the state
         print('RANDOM ACTION', action)
@@ -83,8 +83,10 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
         return states, actions, rewards, moves, historic_states, Q, state, state_size, (0,0)
 
     ## Updating Q-values
-    lr, gamma = 0.1, 0.9 # Hyperparameters
-
+    lr, gamma = 0.1, 0.9 # Hyperparameters 
+    # learning_rate: determines the step size for updating Q-values. It controls how much the new information should override the existing Q-value.
+    # discount_factor (gamma):  represents the importance of future rewards. It discounts the impact of future rewards, giving more weight to immediate rewards.
+    
     # Get next state index
     index_of_next_state = index_of_state + next_state(index_of_action)
 
