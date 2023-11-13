@@ -117,7 +117,7 @@ for cnt in range(5000):
         print(Q)
 
         # states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
-    step_size = 0.2 # size between each step
+    step_size = 1 # size between each step
     lower_bound = states[states.index(state)] - (step_size/10)
     higher_bound = states[states.index(state)] + (step_size/10)
     if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
@@ -130,9 +130,9 @@ for cnt in range(5000):
     simulationstep()
 
     #check collision with arena walls 
-    if (world.distance(Point(x,y))<L/2):
-        print("Collision with arena walls. Simulation stopping.")
-        break
+    #if (world.distance(Point(x,y))<L/2):
+    #    print("Collision with arena walls. Simulation stopping.")
+    #    break
     if cnt%50==0:
         print(f"Recording data at time step {cnt}:")
         print(f"x: {x}, y: {y}, cos(q): {cos(q) * 0.2}, sin(q): {sin(q) * 0.2}")

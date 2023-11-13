@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 """ 
-Old version of Q-learning.
+Exam version of Q-learning.
 """
 
 def robot_drive(action):
@@ -23,12 +23,10 @@ def next_state(index_of_action):
 def init_state_and_actions():
     # Distances to wall (in cm)
     states = [  
-        1, # (Or above)
-        0.8,
-        0.6,
-        0.4,
-        0.2,
-        0,
+        nothing_in_sight,
+        50, 
+        40,
+        30, 
     ]
     state_size = len(states)
 
