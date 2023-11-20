@@ -17,6 +17,8 @@ L = 0.077
 W = 2.0  # width of arena
 H = 2.0  # height of arena
 
+DISTANCE_INTERVAL = 1
+
 robot_timestep = 0.1        # 1/robot_timestep equals update frequency of robot
 simulation_timestep = 0.01  # timestep in kinematics sim (probably don't touch..)
 
@@ -57,8 +59,16 @@ doStuff = True
 for cnt in range(5000):
     #simple single-ray sensor
     ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    left_sensor = LineString([(x, y), (x+cos(q-10)*2*(W+H),(y+sin(q-10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    right_sensor = LineString([(x, y), (x+cos(q+10)*2*(W+H),(y+sin(q+10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+
+
     s = world.intersection(ray)
-    distance = sqrt((s.x-x)**2+(s.y-y)**2)                    # distance to wall
+    distance = sqrt((s.x-x)**2+(s.y-y)**2)   
+    left_s = world.intersection(left_sensor)
+    left_distance = sqrt((left_s.x-x)**2+(left_s.y-y)**2)    
+    right_s = world.intersection(right_sensor)
+    right_distance = sqrt((right_s.x-x)**2+(right_s.y-y)**2)                     # distance to wall
     
     #simple controller - change direction of wheels every 10 seconds (100*robot_timestep) unless close to wall then turn on spot
     # if (distance < 0.5):
