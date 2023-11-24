@@ -34,6 +34,13 @@ flatpak run --command=thymio-device-manager org.mobsya.ThymioSuite
 - add password : RoboRobo 
 
 
+## Checkin the visualization gnu plot 
+
+- run gnuplot
+
+- load "simple_visualization.gnu"
+
+
 # Test Thymio speed and angle 
 
 This is will run the thymio going straight for 10 seconds, and we will measure how far it drove and the off angle
@@ -73,9 +80,6 @@ Tests with L(200, 200)R speed, 10 seconds:
         1. distance: 65.2 cm
         2. angles: front of robot: 0.5cm, back of robot: 0.4cm
 
-
-
-
 ## LIDAR TESTS:
 
 
@@ -99,8 +103,6 @@ Tests with L(200, 200)R speed, 10 seconds:
 
 
     # Test where 0, 90, 180, 270, and 360 are
-
-        
 
 
 
@@ -152,7 +154,3 @@ Zero degrees, run:  11 []
 
     # 60cm
 
-    
-
-
-    

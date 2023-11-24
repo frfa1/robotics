@@ -1,23 +1,15 @@
 import cv2
 import numpy as np
-##from picamera import PiCamera
-from time import sleep  # Import the sleep function from the time module
 
-# Initialize the Raspberry Pi camera
-camera = PiCamera()
-camera.resolution = (320, 240)
-camera.framerate = 24
+# Specify the device path for the external camera
+#external_camera_path = '/dev/video2'
 
-# Create an empty NumPy array to store the captured image
-image = np.empty((240, 320, 3), dtype=np.uint8)
+# Initialize the camera using the specified path
+#camera = cv2.VideoCapture(external_camera_path)
 
-# Capture an image from the Raspberry Pi camera
-camera.capture(image, 'bgr')
-cv2.imwrite('out.png', image)
-print("Saved image to out.png")
-
-# Continue with the OpenCV camera feed processing
+# Initialize the camera (0 is typically the default camera on a laptop)
 camera = cv2.VideoCapture(0)
+
 cv2.startWindowThread()
 
 while True:
@@ -32,7 +24,7 @@ while True:
     # Convert the frame to HSV color space
     hsv = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HSV)
 
-    lower_color = np.array([30, 150, 50])  # Change the colors to your preferences
+    lower_color = np.array([30, 150, 50]) ## change the colours to your preferences
     upper_color = np.array([60, 255, 255])
 
     # Create a mask to threshold the frame
@@ -47,9 +39,9 @@ while True:
         area = cv2.contourArea(contour)
 
         if area > 100:
-            print("Found the tennis ball")
+            print("found the tennis ball")
         else:
-            print("Found something small and yellow")
+            print("found something small and yellow")
 
     # Display the camera feed with detection results
     cv2.imshow('mygrabbed image', mask)
