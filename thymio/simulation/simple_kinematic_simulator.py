@@ -5,7 +5,7 @@ import numpy as np
 # from random import random
 import random
 
-from q_learning import close_to_wall, init_state_and_actions, next_state, robot_drive
+from final_q_learning import close_to_wall, init_state_and_actions, next_state, robot_drive, next_state_index
 
 # A prototype simulation of a differential-drive robot with one sensor
 
@@ -32,8 +32,12 @@ x = 0.0   # robot position in meters - x direction - positive to the right
 y = 0.0   # robot position in meters - y direction - positive up
 q = 0.0   # robot heading with respect to x-axis in radians 
 
+x_theta, y_theta, q_theta = 0.0, 0.0, 0.0 # Used for simulating next
+
 left_wheel_velocity =  0   # robot left wheel velocity in radians/s
 right_wheel_velocity =  0  # robot right wheel velocity in radians/s
+
+left_wheel_velocity_theta, right_wheel_velocity_theta =  0, 0   # robot left and right wheel velocity in radians/s
 
 # Kinematic model
 #################
@@ -51,6 +55,18 @@ def simulationstep():
         y += v_y * simulation_timestep
         q += omega * simulation_timestep
 
+def simulationstep_theta():
+    global x_theta, y_theta, q_theta
+
+    for step in range(int(robot_timestep/simulation_timestep)):     #step model time/timestep times
+        v_x = cos(q_theta)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2) 
+        v_y = sin(q_theta)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2)
+        omega = (R*right_wheel_velocity_theta - R*left_wheel_velocity_theta)/(2*L)    
+    
+        x_theta += v_x * simulation_timestep
+        y_theta += v_y * simulation_timestep
+        q_theta += omega * simulation_timestep
+
 # Simulation loop
 #################
 states, actions, rewards, moves, historic_states, Q, state, state_size = init_state_and_actions()
@@ -61,7 +77,6 @@ for cnt in range(5000):
     ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
     left_sensor = LineString([(x, y), (x+cos(q-10)*2*(W+H),(y+sin(q-10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
     right_sensor = LineString([(x, y), (x+cos(q+10)*2*(W+H),(y+sin(q+10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-
 
     s = world.intersection(ray)
     distance = sqrt((s.x-x)**2+(s.y-y)**2)   
@@ -93,19 +108,32 @@ for cnt in range(5000):
             action = actions[index_of_action]
             print('BEST ACTION', action)
 
-    # From action to index
+        # From action to index
         index_of_action = actions.index(action)
 
-    # Illegal moves: Continue to next iteration
-    # i.e. backwards on first position, or forward on last position
-        if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
-            continue
+        ### Run a theta simulation step to get the rewards of the next state
+        x_theta, y_theta, q_theta = x, y, q # Reset Theta values since last step
+        left_wheel_velocity_theta, right_wheel_velocity_theta = robot_drive(action)
+        simulationstep_theta() # Simulate to get next state based on action
+        ### Simulate movements of theta robot
+        left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-10)*2*(W+H),(y_theta+sin(q_theta-10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+        right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+10)*2*(W+H),(y_theta+sin(q_theta+10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+        left_s_theta = world.intersection(left_sensor_theta)
+        left_distance_theta = sqrt((left_s_theta.x-x_theta)**2+(left_s_theta.y-y_theta)**2)    
+        right_s_theta = world.intersection(right_sensor_theta)
+        right_distance_theta = sqrt((right_s_theta.x-x_theta)**2+(right_s_theta.y-y_theta)**2)  # distance to wall
+
+        # Illegal moves: Continue to next iteration
+        # i.e. backwards on first position, or forward on last position
+        #if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
+        #    continue
 
         ## Updating Q-values
         lr, gamma = 0.1, 0.9 # Hyperparameters
 
         # Get next state index
-        index_of_next_state = index_of_state + next_state(index_of_action)
+        #index_of_next_state = index_of_state + next_state(index_of_action)
+        index_of_next_state = next_state_index(left_distance_theta, right_distance_theta)
 
         # Get the reward
         reward = rewards[index_of_next_state]
@@ -127,7 +155,7 @@ for cnt in range(5000):
         print(Q)
 
         # states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
-    step_size = 1 # size between each step
+    """step_size = 1 # size between each step
     lower_bound = states[states.index(state)] - (step_size/10)
     higher_bound = states[states.index(state)] + (step_size/10)
     if not (lower_bound <= distance <= higher_bound): # Drive action until reaches goal state
@@ -135,7 +163,9 @@ for cnt in range(5000):
         doStuff = False
         left_wheel_velocity, right_wheel_velocity = robot_drive(action) # Tuple of wheel velocities based on action
     else: 
-        doStuff = True
+        doStuff = True"""
+    left_wheel_velocity, right_wheel_velocity = robot_drive(action)
+
     #step simulation
     simulationstep()
 
