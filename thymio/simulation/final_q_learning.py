@@ -3,21 +3,21 @@ import random
 
 def robot_drive(action):
     if action == "forward":
-        return (100, 100)
+        return (50, 50)
     elif action == "backward":
-        return (-100,-100)
+        return (-50,-50)
 
     elif action == "left":
-        return (-100,100)
+        return (-50,50)
 
     elif action == "right":
-        return (100,-100)
+        return (50,-50)
     
 def next_state_index(left_distance_theta, right_distance_theta):
     """ 
         Method to get the next state index based on theta robot
     """
-    min_distance = 0.1 # Minimum distance to outer bound of the arena
+    min_distance = 0.5 # Minimum distance to outer bound of the arena
     if left_distance_theta < min_distance: 
         if right_distance_theta < min_distance:
             state_index = 3
@@ -86,7 +86,8 @@ def init_state_and_actions():
     moves = []
     historic_states = []
 
-    state = 1 # Initialize state as s1 (the first state)
+    #state = 1 # Initialize state as s1 (the first state)
+    state = "b_w"
     return states, actions, rewards, moves, historic_states, Q, state, state_size
 
 

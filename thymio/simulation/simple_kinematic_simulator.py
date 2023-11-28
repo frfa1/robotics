@@ -4,6 +4,10 @@ from numpy import sin, cos, pi, sqrt
 import numpy as np
 # from random import random
 import random
+import math
+
+#import matplotlib.pyplot as plt
+#import geopandas as gpd
 
 from final_q_learning import close_to_wall, init_state_and_actions, next_state, robot_drive, next_state_index
 
@@ -14,8 +18,8 @@ from final_q_learning import close_to_wall, init_state_and_actions, next_state, 
 R = 0.0365  # radius of wheels in meters
 L = 0.077
 
-W = 2.0  # width of arena
-H = 2.0  # height of arena
+W = 10.0  # width of arena
+H = 8.0  # height of arena
 
 DISTANCE_INTERVAL = 1
 
@@ -24,6 +28,8 @@ simulation_timestep = 0.01  # timestep in kinematics sim (probably don't touch..
 
 # the world is a rectangular arena with width W and height H
 world = LinearRing([(W/2,H/2),(-W/2,H/2),(-W/2,-H/2),(W/2,-H/2)])
+
+print(list(world.coords))
 
 # Variables 
 ###########
@@ -38,6 +44,8 @@ left_wheel_velocity =  0   # robot left wheel velocity in radians/s
 right_wheel_velocity =  0  # robot right wheel velocity in radians/s
 
 left_wheel_velocity_theta, right_wheel_velocity_theta =  0, 0   # robot left and right wheel velocity in radians/s
+
+sensor_radians = 10 * math.pi / 180 # Goes from 10 degrees to radians, to get left and right sensor angles
 
 # Kinematic model
 #################
@@ -59,13 +67,15 @@ def simulationstep_theta():
     global x_theta, y_theta, q_theta
 
     for step in range(int(robot_timestep/simulation_timestep)):     #step model time/timestep times
-        v_x = cos(q_theta)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2) 
-        v_y = sin(q_theta)*(R*left_wheel_velocity/2 + R*right_wheel_velocity/2)
+        v_x = cos(q_theta)*(R*left_wheel_velocity_theta/2 + R*right_wheel_velocity_theta/2) 
+        v_y = sin(q_theta)*(R*left_wheel_velocity_theta/2 + R*right_wheel_velocity_theta/2)
         omega = (R*right_wheel_velocity_theta - R*left_wheel_velocity_theta)/(2*L)    
     
         x_theta += v_x * simulation_timestep
         y_theta += v_y * simulation_timestep
         q_theta += omega * simulation_timestep
+
+coordinates = []
 
 # Simulation loop
 #################
@@ -73,12 +83,17 @@ states, actions, rewards, moves, historic_states, Q, state, state_size = init_st
 file = open("trajectory.dat", "w")
 doStuff = True
 for cnt in range(5000):
+
+    print("### ITERATION " + str(cnt) + " ###")
+    print("ROBOT POSITION ", x, y, q)
+
     #simple single-ray sensor
     ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-    left_sensor = LineString([(x, y), (x+cos(q-10)*2*(W+H),(y+sin(q-10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-    right_sensor = LineString([(x, y), (x+cos(q+10)*2*(W+H),(y+sin(q+10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    left_sensor = LineString([(x, y), (x+cos(q-sensor_radians)*2*(W+H),(y+sin(q-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    right_sensor = LineString([(x, y), (x+cos(q+sensor_radians)*2*(W+H),(y+sin(q+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
 
     s = world.intersection(ray)
+
     distance = sqrt((s.x-x)**2+(s.y-y)**2)   
     left_s = world.intersection(left_sensor)
     left_distance = sqrt((left_s.x-x)**2+(left_s.y-y)**2)    
@@ -116,12 +131,23 @@ for cnt in range(5000):
         left_wheel_velocity_theta, right_wheel_velocity_theta = robot_drive(action)
         simulationstep_theta() # Simulate to get next state based on action
         ### Simulate movements of theta robot
-        left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-10)*2*(W+H),(y_theta+sin(q_theta-10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-        right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+10)*2*(W+H),(y_theta+sin(q_theta+10)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+
+        ##ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+        ##left_sensor = LineString([(x, y), (x+cos(q-10)*2*(W+H),(y+sin(q-10)*2*(W+H))) ])
+        ##s = world.intersection(ray)
+        ##distance = sqrt((s.x-x)**2+(s.y-y)**2)
+
+        print("THETA ROBOT POSITION ", x_theta, y_theta, q_theta)
+
+        left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-sensor_radians)*2*(W+H),(y_theta+sin(q_theta-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+        right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+sensor_radians)*2*(W+H),(y_theta+sin(q_theta+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+        
         left_s_theta = world.intersection(left_sensor_theta)
         left_distance_theta = sqrt((left_s_theta.x-x_theta)**2+(left_s_theta.y-y_theta)**2)    
         right_s_theta = world.intersection(right_sensor_theta)
         right_distance_theta = sqrt((right_s_theta.x-x_theta)**2+(right_s_theta.y-y_theta)**2)  # distance to wall
+
+        print("DISTANCES ", left_distance_theta, right_distance_theta)
 
         # Illegal moves: Continue to next iteration
         # i.e. backwards on first position, or forward on last position
@@ -147,11 +173,13 @@ for cnt in range(5000):
         
         historic_states.append(state)
         moves.append(action)
+        coordinates.append((x,y))
 
         # Updates state before next iteration
         state = states[index_of_next_state]
         print(moves)
         print(historic_states)
+        print(coordinates)
         print(Q)
 
         # states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
