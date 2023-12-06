@@ -90,6 +90,7 @@ class AvoiderController:
                     await node.wait_for_variables({"prox.horizontal"})
                     with open('Q_table.npy', 'rb') as f:
                         Q = np.load(f)
+                    Q[0,0] = 20
                     print(Q)
 
                     print("Thymio started successfully!")
