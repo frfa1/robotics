@@ -43,8 +43,8 @@ class SeekerController:
         def image_color(image):
             hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)    
 
-            lower_color = np.array([189, 43, 67]) 
-            upper_color = np.array([209, 83, 107])
+            lower_color = np.array([179, 43, 77]) 
+            upper_color = np.array([239, 83, 137])
 
             mask = cv2.inRange(hsv, lower_color, upper_color)
 
@@ -55,7 +55,7 @@ class SeekerController:
             async def prog():
                 with await client.lock() as node:
                     await node.wait_for_variables({"prox.horizontal"})
-                    speed = 200
+                    speed = 0
                     error = await node.compile(seeker_program)
                     if error is not None:
                         print(f"Compilation error: {error['error_msg']}")
@@ -75,11 +75,8 @@ class SeekerController:
                         if not ret:
                             break
                         
+                        image = cv2.flip(image, 0)
                         await client.sleep(0.15)
-
-                        
-                        message = node.v.prox.comm.rx
-                        print(f"message from Thymio: {message}")
 
                         h, w, channels = image.shape
 
@@ -95,17 +92,20 @@ class SeekerController:
                         middle_area = image_color(middle_part)
                         left_area = image_color(right_part)
 
-                        print(right_area)
-                                            
+                        print('Right area: ', right_area)
+                        print('Middle area: ', middle_area)
+                        print('Left area: ', left_area)
+                        print()
+                        print()
                         if middle_area > right_area and middle_area > left_area:
                             node.v.motor.right.target = speed
                             node.v.motor.left.target = speed
                         elif right_area > middle_area and right_area > left_area:
-                            node.v.motor.right.target = speed
-                            node.v.motor.left.target = -speed
-                        elif left_area > middle_area and left_area > right_area:
                             node.v.motor.right.target = -speed
                             node.v.motor.left.target = speed
+                        elif left_area > middle_area and left_area > right_area:
+                            node.v.motor.right.target = speed
+                            node.v.motor.left.target = -speed
                         else:
                             node.v.motor.right.target = -speed
                             node.v.motor.left.target = speed
