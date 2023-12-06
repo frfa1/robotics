@@ -226,7 +226,7 @@ for cnt in range(50000):
     #if (world.distance(Point(x,y))<L/2):
     #    print("Collision with arena walls. Simulation stopping.")
     #    break
-    if cnt%50==0:
+    if cnt%5==0:
         print(f"Recording data at time step {cnt}:")
         print(f"x: {x}, y: {y}, cos(q): {cos(q) * 0.2}, sin(q): {sin(q) * 0.2}")
         file.write(str(x) + ", " + str(y) + ", " + str(cos(q) * 0.2) + ", " + str(sin(q) * 0.2) + "\n")
