@@ -232,16 +232,6 @@ for cnt in range(50000):
         file.write(str(x) + ", " + str(y) + ", " + str(cos(q) * 0.2) + ", " + str(sin(q) * 0.2) + "\n")
 
 
-f = open("simulation_output.txt", "a")
-f.write("--- MOVES ---")
-#f.write(moves)
-f.write("--- HISTORIC STATES ---")
-#f.write(historic_states)
-f.write("--- COORDINATES ---")
-#f.write(coordinates)
-f.write("--- Q ---")
-#f.write(Q)
-f.close()
 
 with open('Q_table.npy', 'wb') as f:
     np.save(f, Q)

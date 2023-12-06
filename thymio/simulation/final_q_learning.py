@@ -97,6 +97,8 @@ def init_state_and_actions():
     # Initialize q-table values to 0
     Q = np.zeros((state_size, action_size))
 
+    #Q[0,0] = 20
+
     # Illegal moves
 
     # All moves
