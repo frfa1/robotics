@@ -48,7 +48,7 @@ right_wheel_velocity =  0  # robot right wheel velocity in radians/s
 
 left_wheel_velocity_theta, right_wheel_velocity_theta =  0, 0   # robot left and right wheel velocity in radians/s
 
-sensor_radians = 2.5 * math.pi / 180 # Goes from 10 degrees to radians, to get left and right sensor angles
+sensor_radians = math.radians(2.5) # Goes from 10 degrees to radians, to get left and right sensor angles
 
 # Kinematic model
 #################
@@ -158,8 +158,15 @@ for cnt in range(50000):
         lr, gamma = 0.1, 0.9 # Hyperparameters
 
         try:
-            left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-sensor_radians)*2*(W+H),(y_theta+sin(q_theta-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-            right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+sensor_radians)*2*(W+H),(y_theta+sin(q_theta+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+            new_left_q_theta = q_theta - sensor_radians
+            #if new_left_q_theta < 0:
+            #    new_left_q_theta = (2 * math.pi) - new_left_q_theta
+            left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(new_left_q_theta)*2*(W+H),(y_theta+sin(new_left_q_theta)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+            
+            new_right_q_theta = q_theta + sensor_radians
+            #if new_right_q_theta > 2 * math.pi:
+            #    new_right_q_theta = new_right_q_theta - (2 * math.pi)
+            right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(new_right_q_theta)*2*(W+H),(y_theta+sin(new_right_q_theta)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
             
             left_s_theta = world.intersection(left_sensor_theta)
             left_distance_theta = sqrt((left_s_theta.x-x_theta)**2+(left_s_theta.y-y_theta)**2)    
@@ -235,6 +242,9 @@ f.write("--- COORDINATES ---")
 f.write("--- Q ---")
 #f.write(Q)
 f.close()
+
+with open('Q_table.npy', 'wb') as f:
+    np.save(f, Q)
 
 print(Q)
 
