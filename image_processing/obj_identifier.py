@@ -2,10 +2,11 @@ import cv2
 import numpy as np
 
 # Specify the device path for the external camera
-external_camera_path = '/dev/video2'
+#external_camera_path = '/dev/video2'
 
 # Initialize the camera using the specified path
-camera = cv2.VideoCapture(external_camera_path)
+#camera = cv2.VideoCapture(external_camera_path)
+camera = cv2.VideoCapture(0)
 
 cv2.startWindowThread()
 

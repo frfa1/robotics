@@ -18,12 +18,15 @@ from final_q_learning import close_to_wall, init_state_and_actions, next_state, 
 R = 0.0365  # radius of wheels in meters
 L = 0.077
 
-W = 10.0  # width of arena
-H = 8.0  # height of arena
+W = 40.0  # width of arena # Measured 190x110 cm
+H = 40.0  # height of arena
+
+thymio_size = 13.0 # width and height of thymio in cm (almost square)
 
 DISTANCE_INTERVAL = 1
 
-robot_timestep = 0.1        # 1/robot_timestep equals update frequency of robot
+#robot_timestep = 0.1        # 1/robot_timestep equals update frequency of robot
+robot_timestep = 0.05
 simulation_timestep = 0.01  # timestep in kinematics sim (probably don't touch..)
 
 # the world is a rectangular arena with width W and height H
@@ -45,7 +48,7 @@ right_wheel_velocity =  0  # robot right wheel velocity in radians/s
 
 left_wheel_velocity_theta, right_wheel_velocity_theta =  0, 0   # robot left and right wheel velocity in radians/s
 
-sensor_radians = 10 * math.pi / 180 # Goes from 10 degrees to radians, to get left and right sensor angles
+sensor_radians = 2.5 * math.pi / 180 # Goes from 10 degrees to radians, to get left and right sensor angles
 
 # Kinematic model
 #################
@@ -82,23 +85,35 @@ coordinates = []
 states, actions, rewards, moves, historic_states, Q, state, state_size = init_state_and_actions()
 file = open("trajectory.dat", "w")
 doStuff = True
-for cnt in range(5000):
+for cnt in range(50000):
+
+    # Reset robot every xth step
+    """if cnt % 1000 == 0:
+        x, y, q = 0.0, 0.0, 0.0
+        #x, y, q = random.randint(-W//2, W//2), random.randint(-H//2, H//2), random.uniform(0, 2*math.pi)
+        state = states[0]"""
+
+    # Reset robot everytime the last 4 states are both sensors black
+    """if cnt > 10:
+        if historic_states[-1] == historic_states[-2] == historic_states[-3] == historic_states[-4] == historic_states[-5] == states[-1]:
+            x, y, q = 0.0, 0.0, 0.0
+            state = states[0]"""
 
     print("### ITERATION " + str(cnt) + " ###")
     print("ROBOT POSITION ", x, y, q)
 
     #simple single-ray sensor
-    ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-    left_sensor = LineString([(x, y), (x+cos(q-sensor_radians)*2*(W+H),(y+sin(q-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    #ray = LineString([(x, y), (x+cos(q)*2*(W+H),(y+sin(q)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+    """left_sensor = LineString([(x, y), (x+cos(q-sensor_radians)*2*(W+H),(y+sin(q-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
     right_sensor = LineString([(x, y), (x+cos(q+sensor_radians)*2*(W+H),(y+sin(q+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
 
     s = world.intersection(ray)
+    distance = sqrt((s.x-x)**2+(s.y-y)**2) 
 
-    distance = sqrt((s.x-x)**2+(s.y-y)**2)   
     left_s = world.intersection(left_sensor)
     left_distance = sqrt((left_s.x-x)**2+(left_s.y-y)**2)    
     right_s = world.intersection(right_sensor)
-    right_distance = sqrt((right_s.x-x)**2+(right_s.y-y)**2)                     # distance to wall
+    right_distance = sqrt((right_s.x-x)**2+(right_s.y-y)**2)                     # distance to wall"""
     
     #simple controller - change direction of wheels every 10 seconds (100*robot_timestep) unless close to wall then turn on spot
     # if (distance < 0.5):
@@ -108,13 +123,13 @@ for cnt in range(5000):
     #     if cnt%100==0:
     #         left_wheel_velocity = random()
     #         right_wheel_velocity = random()
-    print('DISTANCE: ', distance)
+    #print('DISTANCE: ', distance)
     if doStuff:
         print('doing stuff')
         index_of_state = states.index(state) # Get index of state
 
         ## Takes action based on exploitation/exploration
-        epsilon = 0.1 # Percentage of exploration
+        epsilon = 0.2 # Percentage of exploration
         if random.uniform(0, 1) < epsilon: # Exploration
             action = random.choice(actions) # Random action in the state
             print('RANDOM ACTION', action)
@@ -139,36 +154,43 @@ for cnt in range(5000):
 
         print("THETA ROBOT POSITION ", x_theta, y_theta, q_theta)
 
-        left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-sensor_radians)*2*(W+H),(y_theta+sin(q_theta-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-        right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+sensor_radians)*2*(W+H),(y_theta+sin(q_theta+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
-        
-        left_s_theta = world.intersection(left_sensor_theta)
-        left_distance_theta = sqrt((left_s_theta.x-x_theta)**2+(left_s_theta.y-y_theta)**2)    
-        right_s_theta = world.intersection(right_sensor_theta)
-        right_distance_theta = sqrt((right_s_theta.x-x_theta)**2+(right_s_theta.y-y_theta)**2)  # distance to wall
-
-        print("DISTANCES ", left_distance_theta, right_distance_theta)
-
-        # Illegal moves: Continue to next iteration
-        # i.e. backwards on first position, or forward on last position
-        #if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
-        #    continue
-
         ## Updating Q-values
         lr, gamma = 0.1, 0.9 # Hyperparameters
 
-        # Get next state index
-        #index_of_next_state = index_of_state + next_state(index_of_action)
-        index_of_next_state = next_state_index(left_distance_theta, right_distance_theta)
+        try:
+            left_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta-sensor_radians)*2*(W+H),(y_theta+sin(q_theta-sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+            right_sensor_theta = LineString([(x_theta, y_theta), (x_theta+cos(q_theta+sensor_radians)*2*(W+H),(y_theta+sin(q_theta+sensor_radians)*2*(W+H))) ])  # a line from robot to a point outside arena in direction of q
+            
+            left_s_theta = world.intersection(left_sensor_theta)
+            left_distance_theta = sqrt((left_s_theta.x-x_theta)**2+(left_s_theta.y-y_theta)**2)    
+            right_s_theta = world.intersection(right_sensor_theta)
+            right_distance_theta = sqrt((right_s_theta.x-x_theta)**2+(right_s_theta.y-y_theta)**2)  # distance to wall
+
+            print("DISTANCES ", left_distance_theta, right_distance_theta)
+
+            # Illegal moves: Continue to next iteration
+            # i.e. backwards on first position, or forward on last position
+            #if (index_of_state == 0 and index_of_action == 1) or (index_of_state == state_size-1 and index_of_action == 0):
+            #    continue
+
+            # Get next state index
+            #index_of_next_state = index_of_state + next_state(index_of_action)
+            index_of_next_state = next_state_index(left_distance_theta, right_distance_theta)
+        
+        except:
+            x, y, q = 0.0, 0.0, 0.0
+            state = states[0]
+            continue
+            #index_of_next_state = 3
 
         # Get the reward
         reward = rewards[index_of_next_state]
 
-        #print("> INDICES")
-        #print(index_of_state, index_of_action, index_of_next_state)
-
         # Updates Q with the future step (action taken)
         Q[index_of_state, index_of_action] = Q[index_of_state, index_of_action] + lr * (reward + gamma * np.max(Q[index_of_next_state, :]) - Q[index_of_state, index_of_action])
+
+        #print("> INDICES")
+        #print(index_of_state, index_of_action, index_of_next_state)
 
         
         historic_states.append(state)
@@ -177,10 +199,6 @@ for cnt in range(5000):
 
         # Updates state before next iteration
         state = states[index_of_next_state]
-        print(moves)
-        print(historic_states)
-        print(coordinates)
-        print(Q)
 
         # states, actions, rewards, moves, historic_states, Q, state, state_size, speeds = close_to_wall(states, actions, rewards, moves, historic_states, Q, state, state_size)
     """step_size = 1 # size between each step
@@ -205,5 +223,24 @@ for cnt in range(5000):
         print(f"Recording data at time step {cnt}:")
         print(f"x: {x}, y: {y}, cos(q): {cos(q) * 0.2}, sin(q): {sin(q) * 0.2}")
         file.write(str(x) + ", " + str(y) + ", " + str(cos(q) * 0.2) + ", " + str(sin(q) * 0.2) + "\n")
+
+
+f = open("simulation_output.txt", "a")
+f.write("--- MOVES ---")
+#f.write(moves)
+f.write("--- HISTORIC STATES ---")
+#f.write(historic_states)
+f.write("--- COORDINATES ---")
+#f.write(coordinates)
+f.write("--- Q ---")
+#f.write(Q)
+f.close()
+
+print(Q)
+
+#print(moves)
+#print(historic_states)
+#print(coordinates)
+#print(Q)
 
 file.close()

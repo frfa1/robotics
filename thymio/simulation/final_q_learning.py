@@ -2,22 +2,31 @@ import numpy as np
 import random
 
 def robot_drive(action):
+    speed = 200
+
     if action == "forward":
-        return (50, 50)
+        return (speed, speed)
+    
+    elif action == "big_forward":
+        return (-speed*2,-speed*2)
+    
     elif action == "backward":
-        return (-50,-50)
+        return (-speed,-speed)
+    
+    elif action == "big_backward":
+        return (-speed*2,-speed*2)
 
     elif action == "left":
-        return (-50,50)
+        return (-speed,speed)
 
     elif action == "right":
-        return (50,-50)
+        return (speed,-speed)
     
 def next_state_index(left_distance_theta, right_distance_theta):
     """ 
         Method to get the next state index based on theta robot
     """
-    min_distance = 0.5 # Minimum distance to outer bound of the arena
+    min_distance = 1 # Minimum distance to outer bound of the arena
     if left_distance_theta < min_distance: 
         if right_distance_theta < min_distance:
             state_index = 3
@@ -30,7 +39,8 @@ def next_state_index(left_distance_theta, right_distance_theta):
             state_index = 0
 
     return state_index
-    
+
+## OLD
 def next_state(index_of_action):
     """
     Defines the next state based on an action
@@ -63,17 +73,24 @@ def init_state_and_actions():
     # Possible movements
     actions = [
         "forward",
+        #"big_forward",
         "backward",
+        #"big_backward",
         "left",
         "right",
     ]
     action_size = len(actions)
 
+    # Forward: -10, 
+    # Backward: -25.6
+    # Left: 9.8
+    # Right: 4.7
+
     # Rewards - Based on each state
     rewards = [
-        0,
-        0,
-        0,
+        1, # If both white
+        10, # If left black
+        10, # Right black
         -100 # If both sensors see the line
     ]
 
@@ -98,7 +115,7 @@ def close_to_wall(states, actions, rewards, moves, historic_states, Q, state, st
     index_of_state = states.index(state) # Get index of state
 
     ## Takes action based on exploitation/exploration
-    epsilon = 0.1 # Percentage of exploration
+    epsilon = 0.2 # Percentage of exploration
     if random.uniform(0, 1) < epsilon: # Exploration
         action = random.choice(actions) # Random action in the state
         print('RANDOM ACTION', action)

@@ -46,6 +46,12 @@ class SeekerController:
             lower_color = np.array([179, 43, 77]) 
             upper_color = np.array([239, 83, 137])
 
+            #lower_color = np.array([116.820625, 80.573125, 78.2425]) 
+            #upper_color = np.array([116.820625, 80.573125, 78.2425])
+            #try any of them 
+            #lower_color = np.array([112, 115, 75])
+	        #upper_color = np.array([132, 175, 135])
+
             mask = cv2.inRange(hsv, lower_color, upper_color)
 
             return cv2.countNonZero(mask)

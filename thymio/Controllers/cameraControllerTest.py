@@ -31,8 +31,8 @@ class ThymioController:
         def image_color(image):
             hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)    
 
-            lower_color = np.array([180, 35, 30]) 
-            upper_color = np.array([250, 80, 110])
+            lower_color = np.array([116.820625, 80.573125, 78.2425]) 
+            upper_color = np.array([116.820625, 80.573125, 78.2425])
 
             mask = cv2.inRange(hsv, lower_color, upper_color)
 
