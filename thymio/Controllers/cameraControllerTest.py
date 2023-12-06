@@ -21,48 +21,32 @@ Setup:
 
 from tdmclient import ClientAsync
 import cv2
+import itertools 
 import numpy as np
 
 class ThymioController:
     def __init__(self):
+        self.color_found = False
 
-        def behaviorOA(prox_values):
-            """
-            Obstacle avoidance behavior function.
-            Given the proximity sensor values, it determines the Thymio's motion.
-            """
+        def image_color(image):
+            hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)    
 
-            # If an object is detected in front
-            if prox_values[2] > 1500:
-                return -100, -100
-            # If an object is detected on the left
-            elif prox_values[0] > 1000:
-                return -100, 100
-            # If an object is detected on the right
-            elif prox_values[4] > 1000:
-                return 100, -100
-            # If no object is detected, move forward
-            else:
-                return 500, 500
+            lower_color = np.array([116.820625, 80.573125, 78.2425]) 
+            upper_color = np.array([116.820625, 80.573125, 78.2425])
 
-        # Use the ClientAsync context manager to handle the connection to the Thymio robot.
+            mask = cv2.inRange(hsv, lower_color, upper_color)
+
+            color_image = cv2.bitwise_and(image, image, mask=mask)
+            return color_image
+
         with ClientAsync() as client:
 
             async def prog():
-                """
-                Asynchronous function controlling the Thymio's behavior.
-                """
-
-                print('INSIDE PROG')
-                # Lock the node representing the Thymio to ensure exclusive access.
                 with await client.lock() as node:
-
-                    print('INSIDE LOCK')
-
-                    # Wait for the robot's proximity sensors to be ready.
                     await node.wait_for_variables({"prox.horizontal"})
-                    
                     node.send_set_variables({"leds.top": [0, 0, 32]})
+                    node.send_set_variables({"leds.bottom.left": [0, 0, 32]})
+                    node.send_set_variables({"leds.bottom.right": [0, 0, 32]})
 
                     camera = cv2.VideoCapture(0)
                     cv2.startWindowThread()
@@ -74,7 +58,6 @@ class ThymioController:
                             break
 
                         ret, image = camera.read()
-
                         if not ret:
                             break
 
@@ -82,54 +65,68 @@ class ThymioController:
 
                         third = w // 3
 
-                        # this will be the left part
                         left_part = image[:, :third]
 
-                        # this will be the middle part
                         middle_part = image[:, third:2 * third]
 
-                        # this will be the right part
                         right_part = image[:, 2 * third:]
 
-                        # Apply Gaussian Blur to the image
-                        blurred_image = cv2.GaussianBlur(image, (15, 15), 0)
-                        cv2.imwrite('left_image.jpg', left_part)
-                        cv2.imwrite('middle_image.jpg', middle_part)
-                        cv2.imwrite('right_image.jpg', right_part)
+                        left_area = image_color(left_part)
+                        middle_area = image_color(middle_part)
+                        right_area = image_color(right_part)
+
+                        print(left_area)
+                                            
+                        if middle_area > left_area and middle_area > right_area:
+                            node.v.motor.right.target = 100
+                            node.v.motor.left.target = 100
+                        elif left_area > middle_area and left_area > right_area:
+                            node.v.motor.right.target = 100
+                            node.v.motor.left.target = -100
+                        elif right_area > middle_area and right_area > left_area:
+                            node.v.motor.right.target = -100
+                            node.v.motor.left.target = 100
+                        else:
+                            node.v.motor.right.target = 0
+                            node.v.motor.left.target = 0
+                        # left_contours, _ = image_color(left_part)
+                        # middle_contours, _ = image_color(middle_part)
+                        # right_contours, _ = image_color(right_part)
 
 
-                        # Convert the frame to HSV color space
-                        hsv = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HSV)
+                        # for (left, middle, right) in zip(left_contours, middle_contours, right_contours):
+                        #     left_area = cv2.contourArea(left)
+                        #     middle_area = cv2.contourArea(middle)
+                        #     right_area = cv2.contourArea(right)
 
-                        lower_color = np.array([0, 0, 0]) ## change the colours to your preferences
-                        upper_color = np.array([40, 40, 40])
+                        #     print(left_area + middle_area + right_area)
+                        #     if left_area + middle_area + right_area > 100:
+                        #         node.v.motor.right.target = 0
+                        #         node.v.motor.left.target = 0
+                        #         color_found = True
+                        #     else:
+                        #         node.v.motor.right.target = 100
+                        #         node.v.motor.left.target = -100
+                        #         color_found = False
+                        #     cv2.waitKey(1)
 
-                        # Create a mask to threshold the frame
-                        mask = cv2.inRange(hsv, lower_color, upper_color)
+                        #     if color_found:
+                        #         if middle_area > left_area and middle_area > right_area:
+                        #             node.v.motor.right.target = 100
+                        #             node.v.motor.left.target = 100
+                        #         elif left_area > middle_area and left_area > right_area:
+                        #             node.v.motor.right.target = 100
+                        #             node.v.motor.left.target = -100
+                        #         else:
+                        #             node.v.motor.right.target = -100
+                        #             node.v.motor.left.target = 100
 
-                        # Find contours in the mask
-                        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-                        # Check if any detected contour meets the size criteria
-                        for contour in contours:
-                            # contourArea calculates the approximate size of the found contour
-                            area = cv2.contourArea(contour)
-
-                            print(area)
-                            if area > 500:
-                                print(area)
-                                # node.v.motor.right.target = 100
-                                # node.v.motor.left.target = 100
-                            else:
-                                node.v.motor.right.target = 0
-                                node.v.motor.left.target = 0
-
-                        # Display the camera feed with detection results
-                        cv2.waitKey(1)
+                        #     elif not color_found:
+                        #         node.v.motor.right.target = 0
+                        #         node.v.motor.left.target = 0
                         node.flush()
-                    # Release the camera and close the OpenCV window
+                        await client.sleep(0.3)
 
-                        await client.sleep(1)  # Pause for 0.3 seconds before the next iteration
 
                 # Once out of the loop, stop the robot and set the top LED to red
                     camera.release()
