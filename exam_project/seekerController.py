@@ -38,23 +38,15 @@ onevent timer0
 
 class SeekerController:
     def __init__(self):
-        self.color_found = False
 
         def image_color(image):
-            hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)    
+            lower_color = np.array([86, 31, 4], dtype = "uint8") 
+            upper_color = np.array([220, 88, 50], dtype = "uint8")
 
-            lower_color = np.array([179, 43, 77]) 
-            upper_color = np.array([239, 83, 137])
 
-            #lower_color = np.array([116.820625, 80.573125, 78.2425]) 
-            #upper_color = np.array([116.820625, 80.573125, 78.2425])
-            #try any of them 
-            #lower_color = np.array([112, 115, 75])
-	        #upper_color = np.array([132, 175, 135])
-
-            mask = cv2.inRange(hsv, lower_color, upper_color)
-
-            return cv2.countNonZero(mask)
+            mask = cv2.inRange(image, lower_color, upper_color)
+            output = cv2.bitwise_and(image, image, mask = mask)
+            return cv2.countNonZero(output)
 
         with ClientAsync() as client:
 
@@ -81,7 +73,6 @@ class SeekerController:
                         if not ret:
                             break
                         
-                        image = cv2.flip(image, 0)
                         await client.sleep(0.15)
 
                         h, w, channels = image.shape
@@ -107,11 +98,11 @@ class SeekerController:
                             node.v.motor.right.target = speed
                             node.v.motor.left.target = speed
                         elif right_area > middle_area and right_area > left_area:
-                            node.v.motor.right.target = -speed
-                            node.v.motor.left.target = speed
-                        elif left_area > middle_area and left_area > right_area:
                             node.v.motor.right.target = speed
                             node.v.motor.left.target = -speed
+                        elif left_area > middle_area and left_area > right_area:
+                            node.v.motor.right.target = -speed
+                            node.v.motor.left.target = speed
                         else:
                             node.v.motor.right.target = -speed
                             node.v.motor.left.target = speed

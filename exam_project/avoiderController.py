@@ -109,6 +109,9 @@ class AvoiderController:
 
                         message = node.v.prox.comm.rx
 
+                        if (message == 1):
+                            break
+
                         if sum(prox_values) > 20000:
                             break
                         
@@ -133,7 +136,6 @@ class AvoiderController:
                     print("Thymio stopped successfully!")
                     node.v.motor.left.target = 0
                     node.v.motor.right.target = 0
-                    node.v.leds.top = [32, 0, 0]
                     node.flush()
 
 
