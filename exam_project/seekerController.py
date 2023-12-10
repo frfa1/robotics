@@ -40,20 +40,20 @@ class SeekerController:
     def __init__(self):
 
         def image_color(image):
-            lower_color = np.array([86, 31, 4], dtype = "uint8") 
-            upper_color = np.array([220, 88, 50], dtype = "uint8")
+            lower_color = np.array([112, 115, 75], dtype = "uint8") 
+            upper_color = np.array([132, 175, 135], dtype = "uint8")
 
 
             mask = cv2.inRange(image, lower_color, upper_color)
             output = cv2.bitwise_and(image, image, mask = mask)
-            return cv2.countNonZero(output)
+            return cv2.countNonZero(mask)
 
         with ClientAsync() as client:
 
             async def prog():
                 with await client.lock() as node:
                     await node.wait_for_variables({"prox.horizontal"})
-                    speed = 0
+                    speed = 80
                     error = await node.compile(seeker_program)
                     if error is not None:
                         print(f"Compilation error: {error['error_msg']}")
@@ -73,21 +73,21 @@ class SeekerController:
                         if not ret:
                             break
                         
-                        await client.sleep(0.15)
+                        image = cv2.flip(image, 0)
 
                         h, w, channels = image.shape
 
                         third = w // 3
 
-                        left_part = image[:, :third]
+                        right_part = image[:, :third]
 
                         middle_part = image[:, third:2 * third]
 
-                        right_part = image[:, 2 * third:]
+                        left_part = image[:, 2 * third:]
 
-                        right_area = image_color(left_part)
+                        right_area = image_color(right_part)
                         middle_area = image_color(middle_part)
-                        left_area = image_color(right_part)
+                        left_area = image_color(left_part)
 
                         print('Right area: ', right_area)
                         print('Middle area: ', middle_area)
@@ -98,11 +98,11 @@ class SeekerController:
                             node.v.motor.right.target = speed
                             node.v.motor.left.target = speed
                         elif right_area > middle_area and right_area > left_area:
-                            node.v.motor.right.target = speed
-                            node.v.motor.left.target = -speed
-                        elif left_area > middle_area and left_area > right_area:
                             node.v.motor.right.target = -speed
                             node.v.motor.left.target = speed
+                        elif left_area > middle_area and left_area > right_area:
+                            node.v.motor.right.target = speed
+                            node.v.motor.left.target = -speed
                         else:
                             node.v.motor.right.target = -speed
                             node.v.motor.left.target = speed
