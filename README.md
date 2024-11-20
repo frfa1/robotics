@@ -6,4 +6,4 @@ The goal of the Seeker was to detect Avoider-robots using sensors like infrared 
 
 For both of the behaviors, the robot had to stay within an area marked by borders. For the Avoider, which had to avoid getting caught by the Seeker-robot, we tried strategies such as following the border line.
 
-See more detailed explaination at the [Report]([https://pages.github.com/](https://github.com/frfa1/robotics/blob/main/report.pdf))
+See more detailed explaination at the [Report](https://github.com/frfa1/robotics/blob/main/report.pdf)
